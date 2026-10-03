@@ -1,122 +1,192 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../state';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { APP_CONFIG } from '../config/app.config';
-import { Palette, Cpu, Shield, Database } from 'lucide-react';
-
+import { Cpu, Shield, Database, Sliders } from 'lucide-react';
+import { ThemeCustomizer } from '../components/theme/ThemeCustomizer';
 import { DesignSystemShowcase } from '../components/design-system/DesignSystemShowcase';
 import { Tabs } from '../components/ui/Tabs';
 
 export const SettingsView: React.FC = () => {
   const { settings, updateSettings } = useApp();
-  const [subTab, setSubTab] = React.useState('preferences');
+  const [activeTab, setActiveTab] = useState<'themes' | 'preferences' | 'design-system'>('themes');
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto py-2">
-      <div className="pb-4 border-b border-stone-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Settings Header */}
+      <div className="pb-4 border-b border-stone-200/70 dark:border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-stone-900">Settings & Studio Preferences</h1>
-          <p className="text-xs text-stone-500">
-            Personalize your writing environment, typography, AI companion, and storage.
+          <h1 className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
+            Settings & Studio Studio
+          </h1>
+          <p className="text-xs text-stone-500 dark:text-stone-400">
+            Personalize themes, typography, writing modes, AI companion, and storage.
           </p>
         </div>
+
         <Tabs
           variant="pills"
-          activeTab={subTab}
-          onChange={setSubTab}
+          activeTab={activeTab}
+          onChange={(tab) => setActiveTab(tab as typeof activeTab)}
           items={[
-            { id: 'preferences', label: 'Preferences' },
-            { id: 'design-system', label: 'Design System & Tokens' },
+            { id: 'themes', label: 'Themes & Studio' },
+            { id: 'preferences', label: 'Editor & Engine' },
+            { id: 'design-system', label: 'Design Tokens' },
           ]}
         />
       </div>
 
-      {subTab === 'design-system' ? (
-        <DesignSystemShowcase />
-      ) : (
+      {/* Tab 1: Themes & Customization */}
+      {activeTab === 'themes' && <ThemeCustomizer />}
 
-      <div className="space-y-4">
-        {/* Appearance Section */}
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-stone-100 text-stone-700">
-              <Palette className="w-5 h-5" />
+      {/* Tab 2: Editor & System Preferences */}
+      {activeTab === 'preferences' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          {/* Editor Preferences */}
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+                <Sliders className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                  Editor Behavior & Metrics
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Auto-save timings, spell check, and live status bar counters.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-stone-900">Appearance & Typography</h3>
-              <p className="text-xs text-stone-500">
-                Current theme: <span className="capitalize font-medium">{settings.appearance.theme}</span>
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
-            {(['serif', 'sans', 'mono', 'classic'] as const).map((font) => (
-              <button
-                key={font}
-                onClick={() =>
-                  updateSettings({
-                    appearance: { ...settings.appearance, fontFamily: font },
-                  })
-                }
-                className={`p-2.5 rounded-lg border text-xs font-medium text-center capitalize transition ${
-                  settings.appearance.fontFamily === font
-                    ? 'border-stone-900 bg-stone-900 text-white'
-                    : 'border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700'
-                }`}
-              >
-                {font} Font
-              </button>
-            ))}
-          </div>
-        </Card>
 
-        {/* AI Configuration Section */}
-        <Card>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-amber-50 text-amber-800">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-stone-900">AI Writing Assistant</h3>
-              <p className="text-xs text-stone-500">Configured provider and model preferences</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between pt-2 text-xs text-stone-600">
-            <span>AI Assistance Mode</span>
-            <Badge variant="accent">Phase 18 Ready</Badge>
-          </div>
-        </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <label className="flex items-center justify-between p-3 rounded-xl border border-stone-200 dark:border-stone-800 cursor-pointer">
+                <span className="text-xs font-medium text-stone-800 dark:text-stone-200">
+                  Spell Check Active
+                </span>
+                <input
+                  type="checkbox"
+                  checked={settings.editor.spellCheck}
+                  onChange={(e) =>
+                    updateSettings({
+                      editor: { ...settings.editor, spellCheck: e.target.checked },
+                    })
+                  }
+                  className="rounded text-amber-600"
+                />
+              </label>
 
-        {/* Local Storage Section */}
-        <Card>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-stone-100 text-stone-700">
-              <Database className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-stone-900">Local-First Storage</h3>
-              <p className="text-xs text-stone-500">IndexedDB engine active on this device</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between pt-2 text-xs text-stone-600">
-            <span>Database Status</span>
-            <Badge variant="neutral">Connected (IndexedDB)</Badge>
-          </div>
-        </Card>
+              <label className="flex items-center justify-between p-3 rounded-xl border border-stone-200 dark:border-stone-800 cursor-pointer">
+                <span className="text-xs font-medium text-stone-800 dark:text-stone-200">
+                  Show Word Count
+                </span>
+                <input
+                  type="checkbox"
+                  checked={settings.editor.showWordCount}
+                  onChange={(e) =>
+                    updateSettings({
+                      editor: { ...settings.editor, showWordCount: e.target.checked },
+                    })
+                  }
+                  className="rounded text-amber-600"
+                />
+              </label>
 
-        {/* System & Privacy Info */}
-        <Card className="bg-stone-50/70 border-stone-200/60">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="w-4 h-4 text-stone-500" />
-            <h4 className="text-xs font-semibold text-stone-800">Privacy & Architecture</h4>
-          </div>
-          <p className="text-xs text-stone-500 leading-relaxed">
-            {APP_CONFIG.name} v{APP_CONFIG.version} is designed with a local-first philosophy. Your data remains strictly on your device until optional end-to-end sync is enabled in later phases.
-          </p>
-        </Card>
-      </div>
+              <label className="flex items-center justify-between p-3 rounded-xl border border-stone-200 dark:border-stone-800 cursor-pointer">
+                <span className="text-xs font-medium text-stone-800 dark:text-stone-200">
+                  Show Reading Time
+                </span>
+                <input
+                  type="checkbox"
+                  checked={settings.editor.showReadingTime}
+                  onChange={(e) =>
+                    updateSettings({
+                      editor: { ...settings.editor, showReadingTime: e.target.checked },
+                    })
+                  }
+                  className="rounded text-amber-600"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3 rounded-xl border border-stone-200 dark:border-stone-800 cursor-pointer">
+                <span className="text-xs font-medium text-stone-800 dark:text-stone-200">
+                  Typewriter Scroll
+                </span>
+                <input
+                  type="checkbox"
+                  checked={settings.editor.typewriterMode}
+                  onChange={(e) =>
+                    updateSettings({
+                      editor: { ...settings.editor, typewriterMode: e.target.checked },
+                    })
+                  }
+                  className="rounded text-amber-600"
+                />
+              </label>
+            </div>
+          </Card>
+
+          {/* AI Configuration Section */}
+          <Card>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300">
+                <Cpu className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                  AI Writing Assistant Engine
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Local-first AI prompts, smart continuity, and auto-suggest.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 text-xs text-stone-600 dark:text-stone-400">
+              <span>Assistant Pipeline</span>
+              <Badge variant="accent">Phase 18 Integration Ready</Badge>
+            </div>
+          </Card>
+
+          {/* Local Storage Section */}
+          <Card>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+                <Database className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                  Local-First Storage Engine
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  IndexedDB engine active and persisting all manuscripts locally on this machine.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 text-xs text-stone-600 dark:text-stone-400">
+              <span>Database Engine</span>
+              <Badge variant="neutral">Connected (IndexedDB v1)</Badge>
+            </div>
+          </Card>
+
+          {/* System & Privacy Info */}
+          <Card className="bg-stone-50/70 dark:bg-stone-900/40 border-stone-200/60 dark:border-stone-800">
+            <div className="flex items-center gap-3 mb-2">
+              <Shield className="w-4 h-4 text-stone-500" />
+              <h4 className="text-xs font-semibold text-stone-800 dark:text-stone-200">
+                Privacy Architecture
+              </h4>
+            </div>
+            <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+              {APP_CONFIG.name} v{APP_CONFIG.version} adheres to a strict local-first philosophy. Your
+              notes, manuscripts, characters, and journals are saved directly to your device and never
+              transmitted to unverified servers.
+            </p>
+          </Card>
+        </div>
       )}
+
+      {/* Tab 3: Design System Tokens */}
+      {activeTab === 'design-system' && <DesignSystemShowcase />}
     </div>
   );
 };

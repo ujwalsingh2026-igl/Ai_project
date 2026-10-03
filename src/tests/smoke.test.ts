@@ -5,6 +5,7 @@ import { tokens } from '../design-system/tokens';
 import { folderService } from '../services/folderService';
 import { documentService } from '../services/documentService';
 import { getEditorExtensions } from '../editor/extensions';
+import { BUILT_IN_THEMES, applyThemeToDOM } from '../theme';
 
 export function runSmokeTests(): boolean {
   console.log('[SmokeTest] Running LITERIA Phase 0 through Phase 5 verification...');
@@ -101,6 +102,29 @@ export function runSmokeTests(): boolean {
     throw new Error(`Editor extensions suite failed: expected >= 10, got ${extensions.length}`);
   }
 
-  console.log('[SmokeTest] All Phase 0, 1, 2, 3, 4, and 5 Core Text Editor tests passed.');
+  // Phase 6 Tests: Built-in themes & customization engine
+  const expectedThemes = [
+    'light',
+    'dark',
+    'midnight',
+    'ivory',
+    'sepia',
+    'minimal',
+    'forest',
+    'aurora',
+    'custom',
+  ] as const;
+
+  for (const themeId of expectedThemes) {
+    if (!BUILT_IN_THEMES[themeId]) {
+      throw new Error(`Missing expected built-in theme definition: ${themeId}`);
+    }
+  }
+
+  if (typeof applyThemeToDOM !== 'function') {
+    throw new Error('applyThemeToDOM is not a function');
+  }
+
+  console.log('[SmokeTest] All Phase 0 through Phase 6 (Themes & Customization) smoke tests passed.');
   return true;
 }

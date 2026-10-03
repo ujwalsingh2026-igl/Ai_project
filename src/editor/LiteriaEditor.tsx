@@ -12,7 +12,7 @@ import type { Document, DocumentStats } from '../types';
 import './editor.css';
 
 export const LiteriaEditor: React.FC = () => {
-  const { activeDocument, setActiveDocument, distractionFree } = useApp();
+  const { activeDocument, setActiveDocument, distractionFree, settings } = useApp();
   const [doc, setDoc] = useState<Document | null>(activeDocument);
   const [title, setTitle] = useState<string>(activeDocument?.title || 'Untitled');
   const [stats, setStats] = useState<DocumentStats>(
@@ -162,8 +162,29 @@ export const LiteriaEditor: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleImmediateSave]);
 
+  const widthClassMap: Record<string, string> = {
+    narrow: 'max-w-xl',
+    medium: 'max-w-3xl',
+    wide: 'max-w-5xl',
+    full: 'max-w-none px-4',
+  };
+
+  const fontClassMap: Record<string, string> = {
+    serif: 'font-serif-literary',
+    sans: 'font-sans-literary',
+    mono: 'font-mono-literary',
+    classic: 'font-classic-literary',
+    modern: 'font-sans-literary',
+    handwriting: 'font-handwriting-literary',
+  };
+
+  const currentFontClass = fontClassMap[settings.appearance.fontFamily] || 'font-serif-literary';
+  const currentWidthClass = widthClassMap[settings.appearance.writingWidth] || 'max-w-3xl';
+
   return (
-    <div className="flex flex-col h-full bg-[#fdfbf7] dark:bg-[#161413] text-stone-900 dark:text-stone-100 relative overflow-hidden">
+    <div
+      className={`flex flex-col h-full bg-[var(--color-bg)] text-[var(--color-text-primary)] relative overflow-hidden transition-colors duration-200 ${currentFontClass}`}
+    >
       {/* Desktop Toolbar (Hidden in Distraction-Free mode) */}
       {!distractionFree && (
         <EditorToolbar
@@ -181,7 +202,14 @@ export const LiteriaEditor: React.FC = () => {
 
       {/* Writing Canvas */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 py-8 flex justify-center custom-scrollbar">
-        <main className="w-full max-w-3xl flex flex-col min-h-[calc(100vh-16rem)]">
+        <main
+          className={`w-full ${currentWidthClass} flex flex-col min-h-[calc(100vh-16rem)] writing-sheet transition-all duration-200`}
+          style={{
+            fontSize: `${settings.appearance.largerText ? settings.appearance.fontSize + 2 : settings.appearance.fontSize}px`,
+            lineHeight: settings.appearance.increasedLineHeight ? settings.appearance.lineHeight + 0.2 : settings.appearance.lineHeight,
+            letterSpacing: `${settings.appearance.letterSpacing}px`,
+          }}
+        >
           {/* Document Title Input */}
           <div className="mb-6">
             <input
@@ -189,9 +217,9 @@ export const LiteriaEditor: React.FC = () => {
               value={title}
               onChange={(e) => handleTitleChange(e.target.value)}
               placeholder="Untitled Document"
-              className="w-full text-3xl sm:text-4xl font-serif font-bold text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 bg-transparent border-none outline-none focus:ring-0 tracking-tight transition-colors"
+              className="w-full text-3xl sm:text-4xl font-serif font-bold text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] bg-transparent border-none outline-none focus:ring-0 tracking-tight transition-colors"
             />
-            <div className="h-0.5 w-16 bg-amber-600/30 dark:bg-amber-500/20 mt-3 rounded-full" />
+            <div className="h-0.5 w-16 bg-[var(--color-accent)]/40 mt-3 rounded-full" />
           </div>
 
           {/* TipTap Rich Text Area */}

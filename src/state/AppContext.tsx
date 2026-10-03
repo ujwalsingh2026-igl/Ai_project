@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode }
 import type { Document, Settings } from '../types';
 import { initializeStorage, DEFAULT_SETTINGS, db } from '../storage';
 import { documentService } from '../services/documentService';
+import { applyThemeToDOM } from '../theme';
 
 export type AppView =
   | 'home'
@@ -100,16 +101,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const loaded = await db.settings.get('current_settings');
       if (loaded) {
         setSettings(loaded);
-        if (loaded.appearance.theme === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-          document.documentElement.removeAttribute('data-theme');
-        }
+        applyThemeToDOM(loaded.appearance);
+      } else {
+        applyThemeToDOM(DEFAULT_SETTINGS.appearance);
       }
       setIsStorageReady(true);
     }
     setup();
   }, []);
+
+  // System theme preference listener
+  useEffect(() => {
+    if (!settings.appearance.followSystemTheme) return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      applyThemeToDOM(settings.appearance);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [settings.appearance]);
 
   // Sync fullscreen change listener
   useEffect(() => {
@@ -153,14 +165,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const toggleTheme = async () => {
-    const nextTheme = settings.appearance.theme === 'dark' ? 'light' : 'dark';
-    if (nextTheme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
+    const nextTheme: import('../types').ThemeMode = settings.appearance.theme === 'dark' ? 'light' : 'dark';
+    const updatedAppearance = { ...settings.appearance, theme: nextTheme, followSystemTheme: false };
+    applyThemeToDOM(updatedAppearance);
     await updateSettings({
-      appearance: { ...settings.appearance, theme: nextTheme },
+      appearance: updatedAppearance,
     });
   };
 
@@ -184,6 +193,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateSettings = async (newSettings: Partial<Settings>) => {
     const merged = { ...settings, ...newSettings, updatedAt: Date.now() };
     setSettings(merged);
+    if (newSettings.appearance) {
+      applyThemeToDOM(merged.appearance);
+    }
     await db.settings.put(merged);
   };
 
