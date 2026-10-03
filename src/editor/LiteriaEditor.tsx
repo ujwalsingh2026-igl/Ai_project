@@ -5,22 +5,37 @@ import { EditorToolbar } from './EditorToolbar';
 import { MobileEditorToolbar } from './MobileEditorToolbar';
 import { EditorStatusBar } from './EditorStatusBar';
 import { FindAndReplace } from './FindAndReplace';
+import { TypeSpecificToolbar } from './TypeSpecificToolbar';
 import { useApp } from '../state';
 import { documentService } from '../services/documentService';
-import { calculateDocumentStats } from '../utils/formatters';
-import type { Document, DocumentStats } from '../types';
+import { calculateEnhancedStats, getDefaultMetadataForType } from './documentTemplates';
+import type { Document, DocumentStats, DocumentType, DocumentTypeMetadata } from '../types';
 import './editor.css';
+
+const DOC_TYPE_LABELS: Record<DocumentType, { label: string; icon: string }> = {
+  blank: { label: 'Blank Document', icon: '📄' },
+  note: { label: 'Note', icon: '📝' },
+  story: { label: 'Story', icon: '✨' },
+  novel: { label: 'Novel', icon: '📖' },
+  book: { label: 'Book', icon: '📚' },
+  poem: { label: 'Poem', icon: '🪶' },
+  script: { label: 'Script', icon: '🎬' },
+  comic: { label: 'Comic', icon: '💬' },
+  journal: { label: 'Journal', icon: '📔' },
+  draft: { label: 'Draft', icon: '⏳' },
+};
 
 export const LiteriaEditor: React.FC = () => {
   const { activeDocument, setActiveDocument, distractionFree, settings } = useApp();
   const [doc, setDoc] = useState<Document | null>(activeDocument);
   const [title, setTitle] = useState<string>(activeDocument?.title || 'Untitled');
   const [stats, setStats] = useState<DocumentStats>(
-    activeDocument?.stats || calculateDocumentStats('')
+    activeDocument?.stats || calculateEnhancedStats('blank', '', '')
   );
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
 
   const saveTimeoutRef = useRef<number | null>(null);
   const currentDocIdRef = useRef<string | null>(activeDocument?.id || null);
@@ -30,7 +45,14 @@ export const LiteriaEditor: React.FC = () => {
     if (activeDocument) {
       setDoc(activeDocument);
       setTitle(activeDocument.title);
-      setStats(activeDocument.stats || calculateDocumentStats(activeDocument.content || ''));
+      setStats(
+        activeDocument.stats ||
+          calculateEnhancedStats(
+            activeDocument.type,
+            (activeDocument.content || '').replace(/<[^>]+>/g, ' '),
+            activeDocument.content || ''
+          )
+      );
       currentDocIdRef.current = activeDocument.id;
     } else {
       // Auto-load latest document or create initial one if none active
@@ -39,7 +61,7 @@ export const LiteriaEditor: React.FC = () => {
         if (latest) {
           setActiveDocument(latest);
         } else {
-          const fresh = await documentService.create('Welcome to LITERIA', 'blank', '<p>Welcome to <strong>LITERIA</strong> — <em>Where every story finds its form.</em></p><p>Start writing your thoughts, notes, novel, or journal freely.</p>');
+          const fresh = await documentService.create('Welcome to LITERIA', 'blank');
           setActiveDocument(fresh);
         }
       })();
@@ -60,7 +82,7 @@ export const LiteriaEditor: React.FC = () => {
       setHasUnsaved(true);
       const text = currentEditor.getText();
       const html = currentEditor.getHTML();
-      const newStats = calculateDocumentStats(text);
+      const newStats = calculateEnhancedStats(doc?.type || 'blank', text, html);
       setStats(newStats);
 
       // Emergency snapshot in localStorage (crash-proofing)
@@ -146,6 +168,31 @@ export const LiteriaEditor: React.FC = () => {
     }, 800);
   };
 
+  // Document Type Change Handler
+  const handleDocumentTypeChange = async (newType: DocumentType) => {
+    if (!doc || !currentDocIdRef.current) return;
+    const defaultMeta = getDefaultMetadataForType(newType);
+    const updatedDoc: Document = {
+      ...doc,
+      type: newType,
+      metadata: defaultMeta,
+    };
+    setDoc(updatedDoc);
+    setTypeDropdownOpen(false);
+    await documentService.update(doc.id, {
+      type: newType,
+      metadata: defaultMeta,
+    });
+  };
+
+  // Metadata Update Handler
+  const handleUpdateMetadata = async (newMetadata: DocumentTypeMetadata) => {
+    if (!doc || !currentDocIdRef.current) return;
+    const updated = { ...doc, metadata: newMetadata };
+    setDoc(updated);
+    await documentService.update(doc.id, { metadata: newMetadata });
+  };
+
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -187,10 +234,21 @@ export const LiteriaEditor: React.FC = () => {
     >
       {/* Desktop Toolbar (Hidden in Distraction-Free mode) */}
       {!distractionFree && (
-        <EditorToolbar
-          editor={editor}
-          onToggleFindReplace={() => setFindReplaceOpen((prev) => !prev)}
-        />
+        <>
+          <EditorToolbar
+            editor={editor}
+            onToggleFindReplace={() => setFindReplaceOpen((prev) => !prev)}
+          />
+
+          {/* Type-Specific Specialized Toolbar */}
+          {doc && (
+            <TypeSpecificToolbar
+              editor={editor}
+              document={doc}
+              onUpdateMetadata={handleUpdateMetadata}
+            />
+          )}
+        </>
       )}
 
       {/* Floating Find & Replace */}
@@ -210,8 +268,55 @@ export const LiteriaEditor: React.FC = () => {
             letterSpacing: `${settings.appearance.letterSpacing}px`,
           }}
         >
-          {/* Document Title Input */}
-          <div className="mb-6">
+          {/* Header Row: Document Type Badge & Title */}
+          <div className="mb-6 space-y-2">
+            <div className="flex items-center justify-between">
+              {/* Type Switcher Pill */}
+              <div className="relative">
+                <button
+                  onClick={() => setTypeDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-stone-200 dark:border-stone-800 bg-stone-100/70 dark:bg-stone-800/60 hover:bg-stone-200/60 dark:hover:bg-stone-700/60 transition"
+                  title="Switch Document Format"
+                >
+                  <span>{DOC_TYPE_LABELS[doc?.type || 'blank'].icon}</span>
+                  <span className="capitalize">{DOC_TYPE_LABELS[doc?.type || 'blank'].label}</span>
+                  <span className="text-[10px] text-stone-400">▾</span>
+                </button>
+
+                {typeDropdownOpen && (
+                  <div className="absolute left-0 top-8 z-50 p-1.5 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-lg flex flex-col gap-0.5 min-w-[160px] animate-in fade-in duration-100">
+                    {(Object.keys(DOC_TYPE_LABELS) as DocumentType[]).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => handleDocumentTypeChange(t)}
+                        className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-left transition ${
+                          doc?.type === t
+                            ? 'bg-amber-100/60 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-medium'
+                            : 'hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
+                        }`}
+                      >
+                        <span>{DOC_TYPE_LABELS[t].icon}</span>
+                        <span>{DOC_TYPE_LABELS[t].label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Form / Genre Tag indicator */}
+              {doc?.type === 'poem' && doc.metadata?.poem?.form && (
+                <span className="text-[11px] font-mono text-stone-400 capitalize">
+                  Form: {doc.metadata.poem.form}
+                </span>
+              )}
+              {doc?.type === 'script' && doc.metadata?.script?.format && (
+                <span className="text-[11px] font-mono text-stone-400 capitalize">
+                  {doc.metadata.script.format} Screenplay
+                </span>
+              )}
+            </div>
+
+            {/* Document Title Input */}
             <input
               type="text"
               value={title}

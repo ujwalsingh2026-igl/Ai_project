@@ -1,8 +1,12 @@
 import { db } from '../storage/db';
 import type { Document, DocumentType } from '../types';
 import { generateSafeId } from '../utils/security';
-import { calculateDocumentStats } from '../utils/formatters';
 import { activityService } from './activityService';
+import {
+  getDocumentTypeTemplate,
+  getDefaultMetadataForType,
+  calculateEnhancedStats,
+} from '../editor/documentTemplates';
 
 export const documentService = {
   async getAll(): Promise<Document[]> {
@@ -27,13 +31,17 @@ export const documentService = {
 
   async create(title = 'Untitled', type: DocumentType = 'blank', content = ''): Promise<Document> {
     const now = Date.now();
-    const stats = calculateDocumentStats(content);
+    const finalContent = content || getDocumentTypeTemplate(type, title);
+    const plainText = finalContent.replace(/<[^>]+>/g, ' ');
+    const stats = calculateEnhancedStats(type, plainText, finalContent);
+    const metadata = getDefaultMetadataForType(type);
+
     const newDoc: Document = {
       id: generateSafeId(),
       title,
       type,
-      content,
-      plainTextPreview: content.slice(0, 160),
+      content: finalContent,
+      plainTextPreview: plainText.slice(0, 160),
       tags: [],
       isFavorite: false,
       isArchived: false,
@@ -41,6 +49,7 @@ export const documentService = {
       isDeleted: false,
       version: 1,
       stats,
+      metadata,
       createdAt: now,
       updatedAt: now,
       lastOpenedAt: now,
@@ -56,11 +65,15 @@ export const documentService = {
     if (!existing) return;
 
     const content = updates.content !== undefined ? updates.content : existing.content;
-    const stats = updates.content !== undefined ? calculateDocumentStats(content) : existing.stats;
+    const plainText = content.replace(/<[^>]+>/g, ' ');
+    const docType = updates.type || existing.type;
+    const stats = updates.content !== undefined ? calculateEnhancedStats(docType, plainText, content) : existing.stats;
+    const metadata = updates.metadata ? { ...existing.metadata, ...updates.metadata } : existing.metadata;
 
     await db.documents.update(id, {
       ...updates,
       stats,
+      metadata,
       updatedAt: Date.now(),
     });
 

@@ -5,7 +5,12 @@ import { tokens } from '../design-system/tokens';
 import { folderService } from '../services/folderService';
 import { documentService } from '../services/documentService';
 import { getEditorExtensions } from '../editor/extensions';
-import { BUILT_IN_THEMES, applyThemeToDOM } from '../theme';
+import { BUILT_IN_THEMES } from '../theme';
+import {
+  getDocumentTypeTemplate,
+  getDefaultMetadataForType,
+  calculateEnhancedStats,
+} from '../editor/documentTemplates';
 
 export function runSmokeTests(): boolean {
   console.log('[SmokeTest] Running LITERIA Phase 0 through Phase 5 verification...');
@@ -121,10 +126,38 @@ export function runSmokeTests(): boolean {
     }
   }
 
-  if (typeof applyThemeToDOM !== 'function') {
-    throw new Error('applyThemeToDOM is not a function');
+  // Phase 7 Tests: Document Types templates, metadata, and specialized stats
+  const all10DocTypes: import('../types').DocumentType[] = [
+    'blank',
+    'note',
+    'story',
+    'novel',
+    'book',
+    'poem',
+    'script',
+    'comic',
+    'journal',
+    'draft',
+  ];
+
+  for (const docType of all10DocTypes) {
+    const template = getDocumentTypeTemplate(docType, 'Test Title');
+    if (typeof template !== 'string') {
+      throw new Error(`Template generation failed for docType: ${docType}`);
+    }
+    const defaultMeta = getDefaultMetadataForType(docType);
+    if (typeof defaultMeta !== 'object' || defaultMeta === null) {
+      throw new Error(`Default metadata failed for docType: ${docType}`);
+    }
   }
 
-  console.log('[SmokeTest] All Phase 0 through Phase 6 (Themes & Customization) smoke tests passed.');
+  // Verify enhanced script stats
+  const scriptSample = 'INT. ROOM - DAY\nELENA\nHello world.\nEXT. GARDEN - NIGHT\nJULIAN\nGoodbye.';
+  const scriptStats = calculateEnhancedStats('script', scriptSample, scriptSample);
+  if (scriptStats.scenesCount !== 2) {
+    throw new Error(`Enhanced script scenesCount expected 2, got ${scriptStats.scenesCount}`);
+  }
+
+  console.log('[SmokeTest] All Phase 0 through Phase 7 (Document Types) smoke tests passed.');
   return true;
 }

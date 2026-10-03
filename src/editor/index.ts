@@ -3,5 +3,7 @@ export * from './EditorToolbar';
 export * from './MobileEditorToolbar';
 export * from './EditorStatusBar';
 export * from './FindAndReplace';
+export * from './TypeSpecificToolbar';
+export * from './documentTemplates';
 export * from './extensions';
 export * from './EditorPlaceholder';
