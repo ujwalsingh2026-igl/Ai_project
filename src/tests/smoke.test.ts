@@ -4,6 +4,7 @@ import { APP_CONFIG } from '../config/app.config';
 import { tokens } from '../design-system/tokens';
 import { folderService } from '../services/folderService';
 import { documentService } from '../services/documentService';
+import { bookService } from '../services/bookService';
 import { getEditorExtensions } from '../editor/extensions';
 import { BUILT_IN_THEMES } from '../theme';
 import {
@@ -158,6 +159,17 @@ export function runSmokeTests(): boolean {
     throw new Error(`Enhanced script scenesCount expected 2, got ${scriptStats.scenesCount}`);
   }
 
-  console.log('[SmokeTest] All Phase 0 through Phase 7 (Document Types) smoke tests passed.');
+  // Phase 8 Tests: Books, Novels & Multi-Chapter Works
+  if (
+    typeof bookService.create !== 'function' ||
+    typeof bookService.getChapters !== 'function' ||
+    typeof bookService.moveChapter !== 'function' ||
+    typeof bookService.getRollupStats !== 'function' ||
+    typeof bookService.compileManuscript !== 'function'
+  ) {
+    throw new Error('BookService Phase 8 methods verification failed');
+  }
+
+  console.log('[SmokeTest] All Phase 0 through Phase 8 (Books & Novels) smoke tests passed.');
   return true;
 }

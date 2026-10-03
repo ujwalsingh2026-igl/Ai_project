@@ -8,8 +8,9 @@ import { FindAndReplace } from './FindAndReplace';
 import { TypeSpecificToolbar } from './TypeSpecificToolbar';
 import { useApp } from '../state';
 import { documentService } from '../services/documentService';
+import { bookService } from '../services/bookService';
 import { calculateEnhancedStats, getDefaultMetadataForType } from './documentTemplates';
-import type { Document, DocumentStats, DocumentType, DocumentTypeMetadata } from '../types';
+import type { Document, DocumentStats, DocumentType, DocumentTypeMetadata, Chapter } from '../types';
 import './editor.css';
 
 const DOC_TYPE_LABELS: Record<DocumentType, { label: string; icon: string }> = {
@@ -36,9 +37,19 @@ export const LiteriaEditor: React.FC = () => {
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const [bookChapters, setBookChapters] = useState<Chapter[]>([]);
 
   const saveTimeoutRef = useRef<number | null>(null);
   const currentDocIdRef = useRef<string | null>(activeDocument?.id || null);
+
+  // Sync chapters when editing a book document
+  useEffect(() => {
+    if (doc?.bookId) {
+      bookService.getChapters(doc.bookId).then(setBookChapters);
+    } else {
+      setBookChapters([]);
+    }
+  }, [doc?.bookId]);
 
   // Sync when activeDocument changes from outside
   useEffect(() => {
@@ -193,6 +204,29 @@ export const LiteriaEditor: React.FC = () => {
     await documentService.update(doc.id, { metadata: newMetadata });
   };
 
+  // Chapter switch handler inside multi-chapter book
+  const handleSwitchChapter = async (targetChapter: Chapter) => {
+    if (!editor || !doc) return;
+    if (doc.chapterId) {
+      await bookService.updateChapter(doc.chapterId, { content: editor.getHTML() });
+    }
+    editor.commands.setContent(targetChapter.content);
+    setTitle(targetChapter.title);
+    const updatedDoc: Document = {
+      ...doc,
+      title: targetChapter.title,
+      chapterId: targetChapter.id,
+      content: targetChapter.content,
+    };
+    setDoc(updatedDoc);
+    setActiveDocument(updatedDoc);
+    await documentService.update(doc.id, {
+      title: targetChapter.title,
+      chapterId: targetChapter.id,
+      content: targetChapter.content,
+    });
+  };
+
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -247,6 +281,55 @@ export const LiteriaEditor: React.FC = () => {
               document={doc}
               onUpdateMetadata={handleUpdateMetadata}
             />
+          )}
+
+          {/* Book Chapter Navigator Ribbon */}
+          {doc?.bookId && bookChapters.length > 0 && (
+            <div className="px-4 py-1.5 border-b border-amber-600/20 bg-amber-500/5 dark:bg-amber-500/10 flex items-center justify-between text-xs select-none">
+              <div className="flex items-center gap-2">
+                <span className="font-serif font-bold text-amber-900 dark:text-amber-400">
+                  📖 Chapter Navigation:
+                </span>
+                <select
+                  value={doc.chapterId || ''}
+                  onChange={(e) => {
+                    const target = bookChapters.find((c) => c.id === e.target.value);
+                    if (target) handleSwitchChapter(target);
+                  }}
+                  aria-label="Select book chapter"
+                  className="text-xs px-2 py-0.5 rounded border border-amber-600/30 bg-white dark:bg-stone-800 font-serif outline-none"
+                >
+                  {bookChapters.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      #{c.number}: {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const idx = bookChapters.findIndex((c) => c.id === doc.chapterId);
+                    if (idx > 0) handleSwitchChapter(bookChapters[idx - 1]);
+                  }}
+                  disabled={bookChapters.findIndex((c) => c.id === doc.chapterId) <= 0}
+                  className="px-2 py-0.5 rounded border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 disabled:opacity-30 text-[11px]"
+                >
+                  ← Prev Chapter
+                </button>
+                <button
+                  onClick={() => {
+                    const idx = bookChapters.findIndex((c) => c.id === doc.chapterId);
+                    if (idx >= 0 && idx < bookChapters.length - 1) handleSwitchChapter(bookChapters[idx + 1]);
+                  }}
+                  disabled={bookChapters.findIndex((c) => c.id === doc.chapterId) >= bookChapters.length - 1}
+                  className="px-2 py-0.5 rounded border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 disabled:opacity-30 text-[11px]"
+                >
+                  Next Chapter →
+                </button>
+              </div>
+            </div>
           )}
         </>
       )}
