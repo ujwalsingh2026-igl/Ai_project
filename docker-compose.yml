@@ -1,0 +1,29 @@
+# NOT TESTED YET (no Docker in the build sandbox). Dev convenience: web + PostgreSQL.
+# Redis/Celery are intentionally absent: Phase 1 does not need them.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: assistant
+      POSTGRES_USER: assistant
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U assistant"]
+      interval: 5s
+      retries: 10
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DB_NAME: assistant
+      DB_USER: assistant
+      DB_HOST: db
+    depends_on:
+      db: {condition: service_healthy}
+    ports: ["127.0.0.1:8000:8000"]
+volumes:
+  pgdata:

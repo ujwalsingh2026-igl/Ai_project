@@ -1,0 +1,49 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Databases & Local Storage
+*.sqlite3
+*.db
+backend/data/quarantine/*
+!backend/data/quarantine/.gitkeep
+backend/data/scans/*
+!backend/data/scans/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/.venv/
+.venv/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Testing & Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Static & Media
+staticfiles/
+*.log
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Tools & Local IDE
+tools/
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

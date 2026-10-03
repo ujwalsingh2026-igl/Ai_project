@@ -1,0 +1,2 @@
+-r base.txt
+# Tests use Django's built-in runner (unittest). No extra test library needed yet.

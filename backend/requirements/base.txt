@@ -1,0 +1,6 @@
+# Version ranges chosen from knowledge, NOT verified online (sandbox had no network). Verify on first install.
+Django>=5.2,<5.3                # 5.2 is a Long-Term-Support release
+djangorestframework>=3.16,<4    # REST API + token auth + throttling
+django-cors-headers>=4.7,<5     # CORS headers for React frontend
+psycopg[binary]>=3.2,<4         # PostgreSQL driver (used only when DB_NAME is set)
+psutil>=6.0                     # cross-platform CPU/RAM info for system_information tool
