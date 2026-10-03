@@ -2,6 +2,8 @@ import { calculateDocumentStats } from '../utils/formatters';
 import { validateTitle, sanitizeText } from '../utils/security';
 import { APP_CONFIG } from '../config/app.config';
 import { tokens } from '../design-system/tokens';
+import { folderService } from '../services/folderService';
+import { documentService } from '../services/documentService';
 
 export function runSmokeTests(): boolean {
   console.log('[SmokeTest] Running LITERIA Phase 0 & Phase 1 verification...');
@@ -79,6 +81,19 @@ export function runSmokeTests(): boolean {
     throw new Error('Quick create 9 document types count mismatch');
   }
 
-  console.log('[SmokeTest] All Phase 0, 1, 2, and 3 Home Dashboard smoke tests passed.');
+  // Phase 4 Tests: Folder & Library file management methods
+  if (typeof folderService.create !== 'function' || typeof folderService.getSubfolders !== 'function') {
+    throw new Error('FolderService methods verification failed');
+  }
+
+  if (
+    typeof documentService.duplicate !== 'function' ||
+    typeof documentService.moveToFolder !== 'function' ||
+    typeof documentService.bulkArchive !== 'function'
+  ) {
+    throw new Error('DocumentService Phase 4 library methods verification failed');
+  }
+
+  console.log('[SmokeTest] All Phase 0, 1, 2, 3, and 4 Library & File Management smoke tests passed.');
   return true;
 }

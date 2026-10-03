@@ -13,7 +13,6 @@ export const documentService = {
   async getById(id: string): Promise<Document | undefined> {
     const doc = await db.documents.get(id);
     if (doc && !doc.isDeleted) {
-      // update last opened
       await db.documents.update(id, { lastOpenedAt: Date.now() });
       return { ...doc, lastOpenedAt: Date.now() };
     }
@@ -72,6 +71,37 @@ export const documentService = {
     }
   },
 
+  async rename(id: string, newTitle: string): Promise<void> {
+    await this.update(id, { title: newTitle.trim() || 'Untitled' });
+  },
+
+  async duplicate(id: string): Promise<Document | null> {
+    const existing = await db.documents.get(id);
+    if (!existing) return null;
+
+    const now = Date.now();
+    const copy: Document = {
+      ...existing,
+      id: generateSafeId(),
+      title: `${existing.title} (Copy)`,
+      version: 1,
+      createdAt: now,
+      updatedAt: now,
+      lastOpenedAt: now,
+    };
+
+    await db.documents.add(copy);
+    await activityService.log('created', copy.id, copy.title, 'document', { duplicateOf: id });
+    return copy;
+  },
+
+  async moveToFolder(id: string, folderId: string | null): Promise<void> {
+    const existing = await db.documents.get(id);
+    if (!existing) return;
+    await db.documents.update(id, { folderId, updatedAt: Date.now() });
+    await activityService.log('moved', id, existing.title, 'document', { folderId });
+  },
+
   async toggleFavorite(id: string): Promise<boolean> {
     const existing = await db.documents.get(id);
     if (!existing) return false;
@@ -80,14 +110,63 @@ export const documentService = {
     return nextFav;
   },
 
+  async toggleArchive(id: string): Promise<boolean> {
+    const existing = await db.documents.get(id);
+    if (!existing) return false;
+    const nextArchived = !existing.isArchived;
+    await db.documents.update(id, { isArchived: nextArchived, updatedAt: Date.now() });
+    return nextArchived;
+  },
+
+  async addTag(id: string, tag: string): Promise<void> {
+    const existing = await db.documents.get(id);
+    if (!existing) return;
+    const normalized = tag.toLowerCase().trim();
+    if (!existing.tags.includes(normalized)) {
+      const nextTags = [...existing.tags, normalized];
+      await db.documents.update(id, { tags: nextTags, updatedAt: Date.now() });
+    }
+  },
+
+  async removeTag(id: string, tag: string): Promise<void> {
+    const existing = await db.documents.get(id);
+    if (!existing) return;
+    const nextTags = existing.tags.filter((t) => t !== tag);
+    await db.documents.update(id, { tags: nextTags, updatedAt: Date.now() });
+  },
+
   async softDelete(id: string): Promise<void> {
     const existing = await db.documents.get(id);
+    if (!existing) return;
     await db.documents.update(id, {
       isDeleted: true,
       updatedAt: Date.now(),
     });
-    if (existing) {
-      await activityService.log('deleted', id, existing.title, 'document');
+    await activityService.log('deleted', id, existing.title, 'document');
+  },
+
+  /* Bulk operations */
+  async bulkDelete(ids: string[]): Promise<void> {
+    for (const id of ids) {
+      await this.softDelete(id);
+    }
+  },
+
+  async bulkMove(ids: string[], folderId: string | null): Promise<void> {
+    for (const id of ids) {
+      await this.moveToFolder(id, folderId);
+    }
+  },
+
+  async bulkArchive(ids: string[], isArchived: boolean): Promise<void> {
+    for (const id of ids) {
+      await db.documents.update(id, { isArchived, updatedAt: Date.now() });
+    }
+  },
+
+  async bulkFavorite(ids: string[], isFavorite: boolean): Promise<void> {
+    for (const id of ids) {
+      await db.documents.update(id, { isFavorite, updatedAt: Date.now() });
     }
   },
 };
