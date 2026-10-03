@@ -8,6 +8,7 @@ import {
   LibraryView,
   EditorView,
   BooksView,
+  StoryBibleView,
   RecentView,
   FavoritesView,
   DraftsView,
@@ -34,6 +35,8 @@ const MainRouter: React.FC = () => {
       return <EditorView />;
     case 'book':
       return <BooksView />;
+    case 'story':
+      return <StoryBibleView />;
     case 'recent':
       return <RecentView />;
     case 'favorites':

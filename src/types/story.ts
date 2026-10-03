@@ -1,9 +1,13 @@
+export type CharacterRole = 'protagonist' | 'antagonist' | 'supporting' | 'minor' | 'other';
+
 export interface Character {
   id: string;
   bookId?: string | null;
   name: string;
   aliases: string[];
-  role: 'protagonist' | 'antagonist' | 'supporting' | 'minor' | 'other';
+  role: CharacterRole;
+  archetype?: string;
+  avatarColor?: string;
   description: string;
   background?: string;
   personality?: string;
@@ -12,6 +16,7 @@ export interface Character {
   conflict?: string;
   strengths?: string;
   weaknesses?: string;
+  relationships?: CharacterRelationship[];
   tags: string[];
   notes?: string;
   createdAt: number;
@@ -26,6 +31,8 @@ export interface CharacterRelationship {
   description: string;
 }
 
+export type LocationType = 'kingdom' | 'city' | 'interior' | 'region' | 'planet' | 'landmark' | 'other';
+
 export interface Location {
   id: string;
   bookId?: string | null;
@@ -33,6 +40,11 @@ export interface Location {
   type: string;
   description: string;
   environment?: string;
+  sensorySight?: string;
+  sensorySound?: string;
+  sensorySmell?: string;
+  significance?: string;
+  connectedLocationIds?: string[];
   tags: string[];
   notes?: string;
   createdAt: number;
@@ -54,6 +66,8 @@ export interface TimelineEvent {
   updatedAt: number;
 }
 
+export type SceneStatus = 'idea' | 'outlined' | 'drafted' | 'completed';
+
 export interface Scene {
   id: string;
   bookId?: string | null;
@@ -62,12 +76,15 @@ export interface Scene {
   summary: string;
   locationId?: string | null;
   characterIds: string[];
+  povCharacterId?: string | null;
+  goal?: string;
   purpose?: string;
   conflict?: string;
   outcome?: string;
-  status: 'idea' | 'outlined' | 'drafted' | 'completed';
+  status: SceneStatus;
   notes?: string;
   order: number;
   createdAt: number;
   updatedAt: number;
 }
+

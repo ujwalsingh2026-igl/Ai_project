@@ -5,6 +5,7 @@ import { documentService } from '../../services/documentService';
 import { useApp } from '../../state';
 import { BookCover } from './BookCover';
 import { ManuscriptCompileModal } from './ManuscriptCompileModal';
+import { StoryDevelopmentHub } from '../story/StoryDevelopmentHub';
 import { Button } from '../ui';
 import {
   ArrowLeft,
@@ -14,7 +15,10 @@ import {
   Edit3,
   Trash2,
   BookOpen,
+  Compass,
+  Layers,
 } from 'lucide-react';
+import { cn } from '../../utils/cn';
 
 interface BookDetailStudioProps {
   book: Book;
@@ -55,6 +59,7 @@ export const BookDetailStudio: React.FC<BookDetailStudioProps> = ({
   const [compileOpen, setCompileOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(book.title);
+  const [studioTab, setStudioTab] = useState<'manuscript' | 'worldbuilding'>('manuscript');
 
   const loadData = async () => {
     const chs = await bookService.getChapters(book.id);
@@ -271,13 +276,48 @@ export const BookDetailStudio: React.FC<BookDetailStudioProps> = ({
         </div>
       </div>
 
-      {/* Table of Contents Section */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
-              Table of Contents
-            </h2>
+      {/* Main Studio View Switcher */}
+      <div className="flex items-center gap-2 border-b border-stone-200/80 dark:border-stone-800 pb-2">
+        <button
+          onClick={() => setStudioTab('manuscript')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all',
+            studioTab === 'manuscript'
+              ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 font-semibold shadow-xs'
+              : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+          )}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Table of Contents & Chapters</span>
+        </button>
+
+        <button
+          onClick={() => setStudioTab('worldbuilding')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all',
+            studioTab === 'worldbuilding'
+              ? 'bg-amber-600 text-white font-semibold shadow-xs'
+              : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+          )}
+        >
+          <Compass className="w-3.5 h-3.5" />
+          <span>Story Bible & World-Building</span>
+        </button>
+      </div>
+
+      {studioTab === 'worldbuilding' ? (
+        <div className="pt-2">
+          <StoryDevelopmentHub bookId={book.id} />
+        </div>
+      ) : (
+        /* Table of Contents Section */
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                Table of Contents
+              </h2>
+
             <p className="text-xs text-stone-500">
               Manage chapters, order, status, and write sequentially.
             </p>
@@ -375,8 +415,10 @@ export const BookDetailStudio: React.FC<BookDetailStudioProps> = ({
           </div>
         )}
       </section>
+      )}
 
       {/* Manuscript Compilation Modal */}
+
       <ManuscriptCompileModal
         isOpen={compileOpen}
         onClose={() => setCompileOpen(false)}

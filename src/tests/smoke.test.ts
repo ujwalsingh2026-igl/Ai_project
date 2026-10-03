@@ -5,6 +5,7 @@ import { tokens } from '../design-system/tokens';
 import { folderService } from '../services/folderService';
 import { documentService } from '../services/documentService';
 import { bookService } from '../services/bookService';
+import { storyService } from '../services/storyService';
 import { getEditorExtensions } from '../editor/extensions';
 import { BUILT_IN_THEMES } from '../theme';
 import { ambientEngine } from '../audio/ambientEngine';
@@ -192,6 +193,21 @@ export function runSmokeTests(): boolean {
     throw new Error('Focus levels count mismatch');
   }
 
-  console.log('[SmokeTest] All Phase 0 through Phase 9 (Focus & Ambient Modes) smoke tests passed.');
+  // Phase 10 Tests: Story Development & World-Building Tools
+  if (
+    typeof storyService.createCharacter !== 'function' ||
+    typeof storyService.getAllCharacters !== 'function' ||
+    typeof storyService.createLocation !== 'function' ||
+    typeof storyService.getAllLocations !== 'function' ||
+    typeof storyService.createTimelineEvent !== 'function' ||
+    typeof storyService.getAllTimelineEvents !== 'function' ||
+    typeof storyService.createScene !== 'function' ||
+    typeof storyService.getAllScenes !== 'function'
+  ) {
+    throw new Error('StoryService Phase 10 methods verification failed');
+  }
+
+  console.log('[SmokeTest] All Phase 0 through Phase 10 (Story-Development & World-Building) smoke tests passed.');
   return true;
 }
+

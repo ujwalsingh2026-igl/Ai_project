@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useApp, type RightPanelTab } from '../../state';
 import { cn } from '../../utils/cn';
 import {
@@ -8,8 +8,17 @@ import {
   StickyNote,
   Sparkles,
   Clock,
+  Compass,
+  Users,
+  MapPin,
+  Film,
+  Plus,
 } from 'lucide-react';
 import { formatDate } from '../../utils/formatters';
+import { storyService } from '../../services/storyService';
+import type { Character, Location, Scene } from '../../types';
+import { CharacterModal } from '../story/CharacterModal';
+import { LocationModal } from '../story/LocationModal';
 
 export const RightPanel: React.FC = () => {
   const {
@@ -25,6 +34,34 @@ export const RightPanel: React.FC = () => {
 
   const isResizingRef = useRef(false);
 
+  // Quick story development state for sidebar
+  const [storySubTab, setStorySubTab] = useState<'characters' | 'locations' | 'scenes'>('characters');
+  const [sideCharacters, setSideCharacters] = useState<Character[]>([]);
+  const [sideLocations, setSideLocations] = useState<Location[]>([]);
+  const [sideScenes, setSideScenes] = useState<Scene[]>([]);
+  const [characterModalOpen, setCharacterModalOpen] = useState(false);
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+
+  const loadStoryData = async () => {
+    const bookId = activeDocument?.bookId || null;
+    const [chars, locs, scns] = await Promise.all([
+      storyService.getAllCharacters(bookId),
+      storyService.getAllLocations(bookId),
+      storyService.getAllScenes(bookId),
+    ]);
+    setSideCharacters(chars);
+    setSideLocations(locs);
+    setSideScenes(scns);
+  };
+
+  useEffect(() => {
+    if (rightPanelTab === 'story') {
+      loadStoryData();
+    }
+  }, [rightPanelTab, activeDocument?.bookId]);
+
   if (!rightPanelOpen || distractionFree) return null;
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -34,7 +71,7 @@ export const RightPanel: React.FC = () => {
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!isResizingRef.current) return;
       const newWidth = window.innerWidth - moveEvent.clientX;
-      if (newWidth >= 240 && newWidth <= 500) {
+      if (newWidth >= 240 && newWidth <= 520) {
         setRightPanelWidth(newWidth);
       }
     };
@@ -51,6 +88,7 @@ export const RightPanel: React.FC = () => {
 
   const tabs: Array<{ id: RightPanelTab; label: string; icon: React.ReactNode }> = [
     { id: 'info', label: 'Info', icon: <FileText className="w-3.5 h-3.5" /> },
+    { id: 'story', label: 'Story & Lore', icon: <Compass className="w-3.5 h-3.5" /> },
     { id: 'outline', label: 'Outline', icon: <ListTree className="w-3.5 h-3.5" /> },
     { id: 'notes', label: 'Notes', icon: <StickyNote className="w-3.5 h-3.5" /> },
     { id: 'ai', label: 'AI', icon: <Sparkles className="w-3.5 h-3.5" /> },
@@ -151,6 +189,221 @@ export const RightPanel: React.FC = () => {
           </div>
         )}
 
+        {rightPanelTab === 'story' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-sm flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-amber-500" />
+                <span>Story Lore & Characters</span>
+              </h4>
+            </div>
+
+            {/* Sub-tab pills */}
+            <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-stone-800 rounded-lg">
+              <button
+                onClick={() => setStorySubTab('characters')}
+                className={cn(
+                  'flex-1 py-1 rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-1',
+                  storySubTab === 'characters'
+                    ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
+                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'
+                )}
+              >
+                <Users className="w-3 h-3" />
+                <span>Cast ({sideCharacters.length})</span>
+              </button>
+
+              <button
+                onClick={() => setStorySubTab('locations')}
+                className={cn(
+                  'flex-1 py-1 rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-1',
+                  storySubTab === 'locations'
+                    ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
+                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'
+                )}
+              >
+                <MapPin className="w-3 h-3" />
+                <span>World ({sideLocations.length})</span>
+              </button>
+
+              <button
+                onClick={() => setStorySubTab('scenes')}
+                className={cn(
+                  'flex-1 py-1 rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-1',
+                  storySubTab === 'scenes'
+                    ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs font-semibold'
+                    : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'
+                )}
+              >
+                <Film className="w-3 h-3" />
+                <span>Scenes ({sideScenes.length})</span>
+              </button>
+            </div>
+
+            {/* Sub-tab 1: Characters */}
+            {storySubTab === 'characters' && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between pb-1">
+                  <span className="text-[11px] font-medium text-stone-400">Quick Reference</span>
+                  <button
+                    onClick={() => {
+                      setSelectedCharacter(null);
+                      setCharacterModalOpen(true);
+                    }}
+                    className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-semibold hover:underline"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add</span>
+                  </button>
+                </div>
+
+                {sideCharacters.length === 0 ? (
+                  <div className="p-4 rounded-lg bg-stone-50 dark:bg-stone-800/40 border border-dashed border-stone-200 dark:border-stone-800 text-center space-y-1">
+                    <p className="text-[11px] text-stone-400">No characters recorded yet.</p>
+                    <button
+                      onClick={() => {
+                        setSelectedCharacter(null);
+                        setCharacterModalOpen(true);
+                      }}
+                      className="text-[11px] text-amber-600 dark:text-amber-400 font-medium hover:underline"
+                    >
+                      + Create first character
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {sideCharacters.map((char) => (
+                      <div
+                        key={char.id}
+                        onClick={() => {
+                          setSelectedCharacter(char);
+                          setCharacterModalOpen(true);
+                        }}
+                        className="p-2.5 rounded-lg border border-stone-200/70 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-800/50 hover:border-amber-500/40 transition-colors cursor-pointer space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: char.avatarColor || '#f59e0b' }}
+                            />
+                            <span className="font-semibold text-stone-900 dark:text-stone-100 text-xs">
+                              {char.name}
+                            </span>
+                          </div>
+                          <span className="text-[10px] uppercase font-bold text-stone-400">
+                            {char.role}
+                          </span>
+                        </div>
+                        {char.goals && (
+                          <div className="text-[11px] text-stone-500 truncate">
+                            <span className="italic">Goal: {char.goals}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sub-tab 2: Locations */}
+            {storySubTab === 'locations' && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between pb-1">
+                  <span className="text-[11px] font-medium text-stone-400">World Atlas</span>
+                  <button
+                    onClick={() => {
+                      setSelectedLocation(null);
+                      setLocationModalOpen(true);
+                    }}
+                    className="flex items-center gap-1 text-[11px] text-sky-600 dark:text-sky-400 font-semibold hover:underline"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add</span>
+                  </button>
+                </div>
+
+                {sideLocations.length === 0 ? (
+                  <div className="p-4 rounded-lg bg-stone-50 dark:bg-stone-800/40 border border-dashed border-stone-200 dark:border-stone-800 text-center space-y-1">
+                    <p className="text-[11px] text-stone-400">No locations mapped yet.</p>
+                    <button
+                      onClick={() => {
+                        setSelectedLocation(null);
+                        setLocationModalOpen(true);
+                      }}
+                      className="text-[11px] text-sky-600 dark:text-sky-400 font-medium hover:underline"
+                    >
+                      + Create first location
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {sideLocations.map((loc) => (
+                      <div
+                        key={loc.id}
+                        onClick={() => {
+                          setSelectedLocation(loc);
+                          setLocationModalOpen(true);
+                        }}
+                        className="p-2.5 rounded-lg border border-stone-200/70 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-800/50 hover:border-sky-500/40 transition-colors cursor-pointer space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-stone-900 dark:text-stone-100 text-xs">
+                            {loc.name}
+                          </span>
+                          <span className="text-[10px] text-stone-400">
+                            {loc.type}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-stone-500 line-clamp-2">
+                          {loc.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sub-tab 3: Scenes */}
+            {storySubTab === 'scenes' && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between pb-1">
+                  <span className="text-[11px] font-medium text-stone-400">Dramatic Beats</span>
+                </div>
+
+                {sideScenes.length === 0 ? (
+                  <div className="p-4 rounded-lg bg-stone-50 dark:bg-stone-800/40 border border-dashed border-stone-200 dark:border-stone-800 text-center space-y-1">
+                    <p className="text-[11px] text-stone-400">No scenes outlined yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {sideScenes.map((sc) => (
+                      <div
+                        key={sc.id}
+                        className="p-2.5 rounded-lg border border-stone-200/70 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-800/50 space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-stone-900 dark:text-stone-100 text-xs truncate">
+                            {sc.title}
+                          </span>
+                          <span className="text-[10px] font-medium uppercase text-stone-400">
+                            {sc.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-stone-500 line-clamp-2">
+                          {sc.summary}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {rightPanelTab === 'outline' && (
           <div className="space-y-3">
             <h4 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-sm">
@@ -189,6 +442,46 @@ export const RightPanel: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Quick Add Modals */}
+      <CharacterModal
+        isOpen={characterModalOpen}
+        onClose={() => setCharacterModalOpen(false)}
+        character={selectedCharacter}
+        bookId={activeDocument?.bookId || null}
+        onSave={async (data) => {
+          if (selectedCharacter) {
+            await storyService.updateCharacter(selectedCharacter.id, data);
+          } else {
+            await storyService.createCharacter(data);
+          }
+          await loadStoryData();
+        }}
+        onDelete={async (id) => {
+          await storyService.deleteCharacter(id);
+          await loadStoryData();
+        }}
+      />
+
+      <LocationModal
+        isOpen={locationModalOpen}
+        onClose={() => setLocationModalOpen(false)}
+        location={selectedLocation}
+        bookId={activeDocument?.bookId || null}
+        onSave={async (data) => {
+          if (selectedLocation) {
+            await storyService.updateLocation(selectedLocation.id, data);
+          } else {
+            await storyService.createLocation(data);
+          }
+          await loadStoryData();
+        }}
+        onDelete={async (id) => {
+          await storyService.deleteLocation(id);
+          await loadStoryData();
+        }}
+      />
     </aside>
   );
 };
+

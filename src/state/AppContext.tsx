@@ -9,6 +9,7 @@ export type AppView =
   | 'library'
   | 'document'
   | 'book'
+  | 'story'
   | 'recent'
   | 'favorites'
   | 'drafts'
@@ -19,7 +20,7 @@ export type AppView =
   | 'settings'
   | 'ai';
 
-export type RightPanelTab = 'info' | 'outline' | 'notes' | 'ai';
+export type RightPanelTab = 'info' | 'outline' | 'notes' | 'story' | 'ai';
 
 interface AppContextType {
   currentView: AppView;

@@ -2,6 +2,7 @@ export * from './HomeView';
 export * from './LibraryView';
 export * from './EditorView';
 export * from './BooksView';
+export * from './StoryBibleView';
 export * from './RecentView';
 export * from './FavoritesView';
 export * from './DraftsView';
