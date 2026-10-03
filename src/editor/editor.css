@@ -142,3 +142,32 @@
   background-color: #854d0e;
   color: #fef9c3;
 }
+
+/* Paragraph Focus Mode */
+[data-focus-depth='paragraph'] .tiptap > * {
+  opacity: 0.28;
+  transition: opacity 0.25s ease;
+}
+
+[data-focus-depth='paragraph'] .tiptap > *:hover,
+[data-focus-depth='paragraph'] .tiptap > *:focus-within {
+  opacity: 1 !important;
+}
+
+/* Line / Sentence Focus Mode */
+[data-focus-depth='sentence'] .tiptap p,
+[data-focus-depth='line'] .tiptap p {
+  opacity: 0.28;
+  transition: opacity 0.25s ease;
+}
+
+[data-focus-depth='sentence'] .tiptap p:focus-within,
+[data-focus-depth='line'] .tiptap p:focus-within {
+  opacity: 1 !important;
+}
+
+/* Typewriter Mode Scroll Padding */
+.typewriter-canvas {
+  padding-top: 40vh !important;
+  padding-bottom: 50vh !important;
+}

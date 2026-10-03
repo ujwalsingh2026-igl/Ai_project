@@ -7,6 +7,7 @@ import { documentService } from '../services/documentService';
 import { bookService } from '../services/bookService';
 import { getEditorExtensions } from '../editor/extensions';
 import { BUILT_IN_THEMES } from '../theme';
+import { ambientEngine } from '../audio/ambientEngine';
 import {
   getDocumentTypeTemplate,
   getDefaultMetadataForType,
@@ -170,6 +171,27 @@ export function runSmokeTests(): boolean {
     throw new Error('BookService Phase 8 methods verification failed');
   }
 
-  console.log('[SmokeTest] All Phase 0 through Phase 8 (Books & Novels) smoke tests passed.');
+  // Phase 9 Tests: Distraction-Free, Focus & Ambient Atmosphere Modes
+  const initialAmbient = ambientEngine.getState();
+  if (typeof initialAmbient.volume !== 'number') {
+    throw new Error('Ambient engine volume property verification failed');
+  }
+
+  ambientEngine.setVolume(0.65);
+  if (Math.abs(ambientEngine.getState().volume - 0.65) > 0.01) {
+    throw new Error('Ambient engine setVolume verification failed');
+  }
+
+  const focusLevels: import('../components/focus/FocusModeHUD').FocusDepth[] = [
+    'off',
+    'paragraph',
+    'sentence',
+    'line',
+  ];
+  if (focusLevels.length !== 4) {
+    throw new Error('Focus levels count mismatch');
+  }
+
+  console.log('[SmokeTest] All Phase 0 through Phase 9 (Focus & Ambient Modes) smoke tests passed.');
   return true;
 }

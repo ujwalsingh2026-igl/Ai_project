@@ -10,6 +10,7 @@ import { useApp } from '../state';
 import { documentService } from '../services/documentService';
 import { bookService } from '../services/bookService';
 import { calculateEnhancedStats, getDefaultMetadataForType } from './documentTemplates';
+import { FocusModeHUD, type FocusDepth } from '../components/focus/FocusModeHUD';
 import type { Document, DocumentStats, DocumentType, DocumentTypeMetadata, Chapter } from '../types';
 import './editor.css';
 
@@ -27,7 +28,7 @@ const DOC_TYPE_LABELS: Record<DocumentType, { label: string; icon: string }> = {
 };
 
 export const LiteriaEditor: React.FC = () => {
-  const { activeDocument, setActiveDocument, distractionFree, settings } = useApp();
+  const { activeDocument, setActiveDocument, distractionFree, setDistractionFree, settings } = useApp();
   const [doc, setDoc] = useState<Document | null>(activeDocument);
   const [title, setTitle] = useState<string>(activeDocument?.title || 'Untitled');
   const [stats, setStats] = useState<DocumentStats>(
@@ -38,6 +39,10 @@ export const LiteriaEditor: React.FC = () => {
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [bookChapters, setBookChapters] = useState<Chapter[]>([]);
+  const [focusDepth, setFocusDepth] = useState<FocusDepth>('off');
+  const [typewriterMode, setTypewriterMode] = useState<boolean>(
+    settings.editor.typewriterMode || false
+  );
 
   const saveTimeoutRef = useRef<number | null>(null);
   const currentDocIdRef = useRef<string | null>(activeDocument?.id || null);
@@ -95,6 +100,22 @@ export const LiteriaEditor: React.FC = () => {
       const html = currentEditor.getHTML();
       const newStats = calculateEnhancedStats(doc?.type || 'blank', text, html);
       setStats(newStats);
+
+      // Typewriter mode center scroll
+      if (typewriterMode) {
+        window.requestAnimationFrame(() => {
+          const selection = window.getSelection();
+          if (selection && selection.focusNode) {
+            const el =
+              selection.focusNode instanceof HTMLElement
+                ? selection.focusNode
+                : selection.focusNode.parentElement;
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+        });
+      }
 
       // Emergency snapshot in localStorage (crash-proofing)
       if (currentDocIdRef.current) {
@@ -238,10 +259,18 @@ export const LiteriaEditor: React.FC = () => {
         e.preventDefault();
         setFindReplaceOpen((prev) => !prev);
       }
+      if (e.altKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        setTypewriterMode((prev) => !prev);
+      }
+      if (e.altKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setDistractionFree(!distractionFree);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleImmediateSave]);
+  }, [handleImmediateSave, distractionFree, setDistractionFree]);
 
   const widthClassMap: Record<string, string> = {
     narrow: 'max-w-xl',
@@ -341,8 +370,22 @@ export const LiteriaEditor: React.FC = () => {
         onClose={() => setFindReplaceOpen(false)}
       />
 
+      {/* Floating Focus Mode & Ambient Atmosphere HUD */}
+      <FocusModeHUD
+        focusDepth={focusDepth}
+        onChangeFocusDepth={setFocusDepth}
+        typewriterMode={typewriterMode}
+        onToggleTypewriter={() => setTypewriterMode((prev) => !prev)}
+        wordCount={stats.words}
+      />
+
       {/* Writing Canvas */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 py-8 flex justify-center custom-scrollbar">
+      <div
+        data-focus-depth={focusDepth}
+        className={`flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 py-8 flex justify-center custom-scrollbar ${
+          typewriterMode ? 'typewriter-canvas' : ''
+        }`}
+      >
         <main
           className={`w-full ${currentWidthClass} flex flex-col min-h-[calc(100vh-16rem)] writing-sheet transition-all duration-200`}
           style={{
