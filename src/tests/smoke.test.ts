@@ -4,9 +4,10 @@ import { APP_CONFIG } from '../config/app.config';
 import { tokens } from '../design-system/tokens';
 import { folderService } from '../services/folderService';
 import { documentService } from '../services/documentService';
+import { getEditorExtensions } from '../editor/extensions';
 
 export function runSmokeTests(): boolean {
-  console.log('[SmokeTest] Running LITERIA Phase 0 & Phase 1 verification...');
+  console.log('[SmokeTest] Running LITERIA Phase 0 through Phase 5 verification...');
 
   // Test 1: App Config verification
   if (!APP_CONFIG.name || APP_CONFIG.name !== 'LITERIA') {
@@ -94,6 +95,12 @@ export function runSmokeTests(): boolean {
     throw new Error('DocumentService Phase 4 library methods verification failed');
   }
 
-  console.log('[SmokeTest] All Phase 0, 1, 2, 3, and 4 Library & File Management smoke tests passed.');
+  // Phase 5 Tests: Core Text Editor extension suite
+  const extensions = getEditorExtensions();
+  if (!Array.isArray(extensions) || extensions.length < 10) {
+    throw new Error(`Editor extensions suite failed: expected >= 10, got ${extensions.length}`);
+  }
+
+  console.log('[SmokeTest] All Phase 0, 1, 2, 3, 4, and 5 Core Text Editor tests passed.');
   return true;
 }

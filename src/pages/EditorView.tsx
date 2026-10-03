@@ -1,10 +1,10 @@
 import React from 'react';
-import { EditorPlaceholder } from '../editor';
+import { LiteriaEditor } from '../editor';
 
 export const EditorView: React.FC = () => {
   return (
-    <div className="h-[calc(100vh-8rem)]">
-      <EditorPlaceholder />
+    <div className="h-full w-full">
+      <LiteriaEditor />
     </div>
   );
 };
