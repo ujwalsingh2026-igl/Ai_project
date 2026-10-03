@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Literary Dark Ground with Soft Ambient Depth -->
+  <rect width="512" height="512" rx="112" fill="#1c1917"/>
+  <rect x="16" y="16" width="480" height="480" rx="96" stroke="#fafaf9" stroke-opacity="0.1" stroke-width="8"/>
+
+  <!-- Open Book Page Spread -->
+  <path d="M128 350C170 332 216 338 256 360C296 338 342 332 384 350V180C342 162 296 168 256 190C216 168 170 162 128 180V350Z" 
+        fill="#292524" stroke="#e7e5e4" stroke-width="14" stroke-linejoin="round"/>
+  <!-- Book Spine Center Binding -->
+  <path d="M256 190V360" stroke="#e7e5e4" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Intertwined L Monogram -->
+  <path d="M196 130V306C196 306 204 316 230 316H252" stroke="#f59e0b" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Golden Quill Nib & Feather -->
+  <path d="M328 116C302 144 286 186 286 226C304 218 326 214 350 214C350 174 342 136 328 116Z" 
+        fill="#fef3c7" fill-opacity="0.95" stroke="#f59e0b" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M328 116L270 270" stroke="#d97706" stroke-width="10" stroke-linecap="round"/>
+</svg>
