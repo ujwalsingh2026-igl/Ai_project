@@ -2,9 +2,11 @@ import json
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from unittest.mock import MagicMock, patch
 
-from core.providers import (ChatMessage, EchoProvider, OpenAICompatibleProvider, ProviderConfig,
+from core.providers import (ChatMessage, EchoProvider, GeminiProvider, OpenAICompatibleProvider, ProviderConfig,
                             ProviderConfigError, ProviderError, create_provider)
+
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -75,7 +77,9 @@ class ProviderTests(unittest.TestCase):
         with self.assertRaises(ProviderConfigError):
             create_provider(ProviderConfig(provider="openai_compatible", model="m"))  # base_url missing
         with self.assertRaises(ProviderConfigError):
-            create_provider(ProviderConfig(provider="gemini"))            # PLANNED
+            create_provider(ProviderConfig(provider="gemini"))            # api_key missing
+        gemini = create_provider(ProviderConfig(provider="gemini", api_key="secret-key"))
+        self.assertEqual(gemini.name, "gemini")
         with self.assertRaises(ProviderConfigError):
             create_provider(ProviderConfig(provider="nonsense"))
 
@@ -83,5 +87,52 @@ class ProviderTests(unittest.TestCase):
         self.assertNotIn("secret-key", repr(ProviderConfig(api_key="secret-key")))
 
 
+class GeminiProviderTests(unittest.TestCase):
+    def test_missing_api_key_raises(self):
+        with self.assertRaises(ProviderConfigError):
+            GeminiProvider(api_key="")
+
+    @patch("urllib.request.urlopen")
+    def test_gemini_generate_success(self, mock_urlopen):
+        fake_response = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [{"text": "Hello from Gemini AI!"}],
+                        "role": "model",
+                    },
+                    "finishReason": "STOP",
+                }
+            ]
+        }
+        mock_ctx = MagicMock()
+        mock_ctx.read.return_value = json.dumps(fake_response).encode("utf-8")
+        mock_ctx.__enter__.return_value = mock_ctx
+        mock_urlopen.return_value = mock_ctx
+
+        provider = GeminiProvider(api_key="fake-key", model="gemini-2.5-flash")
+        res = provider.generate([ChatMessage("user", "Hello")], system="You are Aegis")
+
+        self.assertEqual(res.text, "Hello from Gemini AI!")
+        self.assertEqual(res.provider, "gemini")
+        self.assertEqual(res.model, "gemini-2.5-flash")
+
+    @patch("urllib.request.urlopen")
+    def test_gemini_blocked_candidate(self, mock_urlopen):
+        fake_response = {
+            "candidates": [],
+            "promptFeedback": {"blockReason": "SAFETY"},
+        }
+        mock_ctx = MagicMock()
+        mock_ctx.read.return_value = json.dumps(fake_response).encode("utf-8")
+        mock_ctx.__enter__.return_value = mock_ctx
+        mock_urlopen.return_value = mock_ctx
+
+        provider = GeminiProvider(api_key="fake-key")
+        with self.assertRaises(ProviderError):
+            provider.generate([ChatMessage("user", "Dangerous prompt")])
+
+
 if __name__ == "__main__":
     unittest.main()
+

@@ -40,7 +40,7 @@ from core.builtin_tools.security import (
     SecuritySelfTestTool,
 )
 from core.builtin_tools.system_information import SystemInformationTool
-from core.intent import RuleBasedIntentRouter
+from core.intent import AgentIntentRouter, RuleBasedIntentRouter
 from core.orchestrator import Orchestrator
 from core.permissions import PermissionEngine
 from core.providers import create_provider
@@ -96,13 +96,16 @@ def build_tool_runtime():
 
 def build_orchestrator() -> Orchestrator:
     registry, executor, approvals = _build_runtime()
+    provider = create_provider(settings.AI_CONFIG)
+    router = AgentIntentRouter(registry, provider)
     return Orchestrator(
-        create_provider(settings.AI_CONFIG),
-        RuleBasedIntentRouter(registry),
+        provider,
+        router,
         executor,
         approvals=approvals,
         memory_store=DjangoMemoryStore(),
     )
+
 
 
 def build_approval_service() -> ApprovalService:

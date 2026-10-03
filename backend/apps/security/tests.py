@@ -20,6 +20,8 @@ EICAR_SAMPLE = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE
 
 class SecurityScannerApiTests(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.user = User.objects.create_user(username="alice", password="password123")
         self.other_user = User.objects.create_user(username="bob", password="password123")
 
@@ -172,6 +174,8 @@ class SecurityScannerApiTests(TestCase):
 
 class SecurityIncidentsApiTests(TestCase):
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.user = User.objects.create_user(username="alice", password="password123")
         self.other_user = User.objects.create_user(username="bob", password="password123")
 
