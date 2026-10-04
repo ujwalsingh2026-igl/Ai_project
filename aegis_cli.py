@@ -318,6 +318,9 @@ def main():
     # apk
     subparsers.add_parser("apk", help="Build and show Android APK packages")
 
+    # gui
+    subparsers.add_parser("gui", help="Launch the native desktop GUI controller")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -334,6 +337,8 @@ def main():
         cmd_mobile(args)
     elif args.command == "apk":
         cmd_apk(args)
+    elif args.command == "gui":
+        cmd_gui(args)
     elif args.command == "tools":
         print_banner()
         cmd_tools(args)
@@ -342,6 +347,16 @@ def main():
     elif args.command == "chat":
         print_banner()
         cmd_chat(args)
+
+
+def cmd_gui(args):
+    gui_script = ROOT_DIR / "aegis_gui.py"
+    venv_py = BACKEND_DIR / ".venv" / "Scripts" / "pythonw.exe"
+    if not venv_py.exists():
+        venv_py = BACKEND_DIR / ".venv" / "Scripts" / "python.exe"
+    exe = str(venv_py) if venv_py.exists() else sys.executable
+    subprocess.Popen([exe, str(gui_script)])
+    print("[OK] Aegis Desktop GUI Controller launched.")
 
 
 if __name__ == "__main__":
