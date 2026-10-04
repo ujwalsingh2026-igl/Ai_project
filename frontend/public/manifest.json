@@ -1,0 +1,18 @@
+{
+  "short_name": "Aegis",
+  "name": "Aegis Autonomous Command Center",
+  "description": "Private, zero-trust autonomous AI command center with defensive security orchestration and clinical intelligence.",
+  "icons": [
+    {
+      "src": "/shield.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512 any",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0a0c10",
+  "theme_color": "#00f0ff",
+  "display": "standalone",
+  "orientation": "any"
+}

@@ -81,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       role="navigation"
       aria-label="Cockpit Main Navigation"
-      className="w-60 border-r border-cockpit-border bg-cockpit-surface flex flex-col justify-between shrink-0 font-sans select-none"
+      className="hidden md:flex w-60 border-r border-cockpit-border bg-cockpit-surface flex-col justify-between shrink-0 font-sans select-none"
     >
       {/* Brand Header */}
       <div>

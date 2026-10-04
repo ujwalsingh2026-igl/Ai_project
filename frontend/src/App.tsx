@@ -18,6 +18,9 @@ import { DailyView } from './views/DailyView';
 import { SecurityView } from './views/SecurityView';
 import { NetworkView } from './views/NetworkView';
 import { MemoryView } from './views/MemoryView';
+import { MobileHeader } from './components/MobileHeader';
+import { MobileNavBar } from './components/MobileNavBar';
+import { MobileNavDrawer } from './components/MobileNavDrawer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +52,7 @@ const CockpitRoot: React.FC = () => {
   const [tacticalOpen, setTacticalOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [pendingPrompt, setPendingPrompt] = useState<string | undefined>(undefined);
 
   // Poll backend health & status every 10 seconds
@@ -130,6 +134,15 @@ const CockpitRoot: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-cockpit-base text-cockpit-text font-sans">
+      {/* Mobile Top App Header */}
+      <MobileHeader
+        activeView={activeView}
+        isBackendOnline={isBackendOnline}
+        pendingApprovalsCount={pendingApprovals.length}
+        onOpenDrawer={() => setMobileDrawerOpen(true)}
+        onToggleTactical={() => setTacticalOpen((prev) => !prev)}
+      />
+
       {/* Rate Limit Warning Banner */}
       {rateLimitWarning && (
         <div
@@ -155,7 +168,7 @@ const CockpitRoot: React.FC = () => {
 
       {/* Main Cockpit Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Rail Sidebar */}
+        {/* Left Rail Sidebar (Desktop) */}
         <Sidebar
           activeView={activeView}
           onSelectView={setActiveView}
@@ -163,7 +176,7 @@ const CockpitRoot: React.FC = () => {
         />
 
         {/* Center Main Stage */}
-        <main role="main" className="flex-1 flex flex-col overflow-hidden relative">
+        <main role="main" className="flex-1 flex flex-col overflow-hidden relative pb-14 md:pb-0">
           {activeView === 'assistant' && (
             <AssistantView
               initialPrompt={pendingPrompt}
@@ -197,7 +210,7 @@ const CockpitRoot: React.FC = () => {
         />
       </div>
 
-      {/* Persistent Bottom Status Bar */}
+      {/* Persistent Bottom Status Bar (Desktop) */}
       <StatusBar
         isBackendOnline={isBackendOnline}
         statusData={statusData}
@@ -207,6 +220,23 @@ const CockpitRoot: React.FC = () => {
         onMicOff={globalMicOff}
         onToggleTacticalPanel={() => setTacticalOpen((prev) => !prev)}
         onOpenShortcuts={() => setShortcutsOpen(true)}
+      />
+
+      {/* Mobile Bottom Navigation Bar (Phones) */}
+      <MobileNavBar
+        activeView={activeView}
+        onSelectView={setActiveView}
+        onOpenDrawer={() => setMobileDrawerOpen(true)}
+        pendingApprovalsCount={pendingApprovals.length}
+      />
+
+      {/* Mobile Slide-Out Navigation Drawer */}
+      <MobileNavDrawer
+        isOpen={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+        activeView={activeView}
+        onSelectView={setActiveView}
+        pendingApprovalsCount={pendingApprovals.length}
       />
 
       {/* Global Command Palette (Ctrl+K) */}

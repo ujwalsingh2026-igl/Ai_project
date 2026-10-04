@@ -47,6 +47,13 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 
+# Android Build Intermediate Artifacts
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/build/
+frontend/android/capacitor-cordova-android-plugins/build/
+frontend/android/local.properties
+
 # Tools & Local IDE
 tools/
 .idea/

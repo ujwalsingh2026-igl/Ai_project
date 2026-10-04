@@ -125,17 +125,47 @@ export const LoginView: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded bg-cockpit-accent text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-cockpit-accent/90 active:bg-cockpit-accent/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-glow flex items-center justify-center gap-2 mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cockpit-accent focus-visible:ring-offset-2 focus-visible:ring-offset-cockpit-surface"
+            className="w-full min-h-[48px] py-3 px-4 rounded bg-cockpit-accent text-black font-mono text-sm font-bold uppercase tracking-wider hover:bg-cockpit-accent/90 active:bg-cockpit-accent/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-glow flex items-center justify-center gap-2 mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cockpit-accent focus-visible:ring-offset-2 focus-visible:ring-offset-cockpit-surface"
           >
             <Terminal className="w-4 h-4" />
             {loading ? 'AUTHENTICATING...' : 'INITIALIZE SESSION'}
           </button>
         </form>
 
-        {/* Safety & Environment Notice */}
-        <div className="mt-6 pt-4 border-t border-cockpit-border/60 text-center font-mono text-[11px] text-cockpit-muted">
-          <span>Backend Target: <code className="text-cockpit-accent">{api.getBaseUrl() || 'Auto (Local & Remote)'}</code></span>
-          <p className="mt-1">Tokens kept in memory & sessionStorage • Never logged</p>
+        {/* Server Connection Switcher for Mobile APK & Web */}
+        <div className="mt-6 pt-4 border-t border-cockpit-border/60 font-mono text-xs text-cockpit-muted">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] uppercase text-cockpit-muted">Server Connection:</span>
+            <span className="text-[11px] text-cockpit-accent truncate max-w-[180px]">
+              {api.getBaseUrl() || 'Auto (Same Origin)'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <button
+              type="button"
+              onClick={() => {
+                api.setBaseUrl('https://authorities-seminars-royalty-forum.trycloudflare.com');
+                window.location.reload();
+              }}
+              className="py-1.5 px-2 rounded bg-cockpit-base border border-cockpit-border hover:border-cockpit-accent text-[10px] text-center truncate transition-colors"
+            >
+              Cloud Tunnel (4G/5G)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                api.setBaseUrl('http://10.227.244.161:5173');
+                window.location.reload();
+              }}
+              className="py-1.5 px-2 rounded bg-cockpit-base border border-cockpit-border hover:border-cockpit-accent text-[10px] text-center truncate transition-colors"
+            >
+              Local Wi-Fi
+            </button>
+          </div>
+          <p className="mt-2 text-[10px] text-center text-cockpit-muted/70">
+            Encrypted Zero-Trust Communication • Level 4 Air-Gapped Approvals
+          </p>
         </div>
       </div>
     </div>

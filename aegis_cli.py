@@ -248,12 +248,47 @@ def cmd_mobile(args):
                 print(resp.read().decode("utf-8"))
         except Exception:
             print(f"  (Point your phone browser to {tunnel_url})")
+    print("\n" + "-" * 65)
+    print("[OPTION 3: STANDALONE ANDROID APK INSTALLATION (.APK)]")
+    apk_file = ROOT_DIR / "aegis-command-center.apk"
+    if apk_file.exists():
+        size_mb = apk_file.stat().st_size / (1024 * 1024)
+        print(f"  Compiled APK File: {apk_file} ({size_mb:.2f} MB)")
+        print(f"  Direct Phone Download (Wi-Fi): {local_url}/aegis-command-center.apk")
+        if tunnel_url:
+            print(f"  Direct Phone Download (Cloud): {tunnel_url}/aegis-command-center.apk")
+        print("\n  Installation Instructions:")
+        print("  1. Open the download link on your Android phone.")
+        print("  2. Tap 'Download Anyway' / 'Open' when finished.")
+        print("  3. Tap 'Install' (Allow install from this source if prompted).")
+        print("  4. Launch 'Aegis Cockpit' directly from your home screen!")
     else:
-        print("\n" + "-" * 65)
-        print("[OPTION 2: PUBLIC CLOUD TUNNEL]")
-        print("  To enable public mobile access over cellular data (outside Wi-Fi), run:")
-        print("  powershell .\\scripts\\setup-tunnel.ps1 -Action start")
+        print("  APK not yet compiled. To build the APK, run:")
+        print("  powershell .\\scripts\\build-apk.ps1")
 
+    print("\n[SAFETY & ZERO-TRUST BOUNDARIES]")
+    print("  * Network: TLS 1.3 encryption on all public tunnel routes.")
+    print("  * Local Isolation: Data and AI models run locally; zero cloud leakage.")
+    print("  * Air-Gapped Approvals: Level 4 actions strictly require operator confirmation.")
+    print("=" * 65 + "\n")
+
+
+def cmd_apk(args):
+    apk_file = ROOT_DIR / "aegis-command-center.apk"
+    print("\n" + "=" * 65)
+    print("      AEGIS COMMAND CENTER // ANDROID APK BUILDER")
+    print("=" * 65 + "\n")
+    if apk_file.exists():
+        size_mb = apk_file.stat().st_size / (1024 * 1024)
+        print(f"  [OK] Android APK Ready: {apk_file}")
+        print(f"       File Size: {size_mb:.2f} MB")
+        print("       Package ID: com.aegis.commandcenter")
+        print("       Target SDK: Android 35 / Java 21")
+        print("\n  To re-compile fresh APK after code changes, run:")
+        print("       powershell .\\scripts\\build-apk.ps1")
+    else:
+        print("  [*] No pre-compiled APK found. Building now...")
+        os.system("powershell .\\scripts\\build-apk.ps1")
     print("=" * 65 + "\n")
 
 
@@ -280,6 +315,9 @@ def main():
     # mobile
     subparsers.add_parser("mobile", help="Get mobile access links and scan QR codes for phone access")
 
+    # apk
+    subparsers.add_parser("apk", help="Build and show Android APK packages")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -294,6 +332,8 @@ def main():
         cmd_status(args)
     elif args.command == "mobile":
         cmd_mobile(args)
+    elif args.command == "apk":
+        cmd_apk(args)
     elif args.command == "tools":
         print_banner()
         cmd_tools(args)

@@ -38,7 +38,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
     <footer
       role="contentinfo"
       aria-label="System Status Bar"
-      className="h-8 border-t border-cockpit-border bg-cockpit-base px-3 flex items-center justify-between text-xs font-mono text-cockpit-muted select-none"
+      className="hidden md:flex h-8 border-t border-cockpit-border bg-cockpit-base px-3 items-center justify-between text-xs font-mono text-cockpit-muted select-none"
     >
       {/* Left side: Telemetry & Connection */}
       <div className="flex items-center gap-4">

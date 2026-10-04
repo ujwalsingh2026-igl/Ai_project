@@ -38,9 +38,25 @@ import {
   AssistantMemoryItem,
 } from './types';
 
+const SERVER_URL_KEY = 'aegis_server_url';
 const TOKEN_KEY = 'aegis_session_token';
 const isTestEnv = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test';
-const DEFAULT_BASE_URL = (!isTestEnv && typeof window !== 'undefined') ? '' : 'http://127.0.0.1:8001';
+
+function getInitialBaseUrl(): string {
+  if (isTestEnv) return 'http://127.0.0.1:8001';
+  if (typeof window === 'undefined') return 'http://127.0.0.1:8001';
+  try {
+    const saved = localStorage.getItem(SERVER_URL_KEY);
+    if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
+  } catch {}
+  const isNative = typeof (window as any).Capacitor !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
+  if (isNative) {
+    return 'https://authorities-seminars-royalty-forum.trycloudflare.com';
+  }
+  return '';
+}
+
+const DEFAULT_BASE_URL = getInitialBaseUrl();
 
 type AuthListener = (isAuthenticated: boolean) => void;
 type RateLimitListener = (isRateLimited: boolean, message?: string) => void;
@@ -52,16 +68,23 @@ class ApiClient {
   private rateLimitListeners: Set<RateLimitListener> = new Set();
 
   constructor() {
-    // Initialize token from sessionStorage on startup
+    // Initialize token from sessionStorage / localStorage on startup
     try {
-      this.tokenInMemory = sessionStorage.getItem(TOKEN_KEY);
+      this.tokenInMemory = sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
     } catch {
       this.tokenInMemory = null;
     }
   }
 
   public setBaseUrl(url: string) {
-    this.baseUrl = url.replace(/\/+$/, '');
+    this.baseUrl = url.trim().replace(/\/+$/, '');
+    try {
+      if (this.baseUrl) {
+        localStorage.setItem(SERVER_URL_KEY, this.baseUrl);
+      } else {
+        localStorage.removeItem(SERVER_URL_KEY);
+      }
+    } catch {}
   }
 
   public getBaseUrl(): string {
@@ -73,11 +96,13 @@ class ApiClient {
     try {
       if (token) {
         sessionStorage.setItem(TOKEN_KEY, token);
+        localStorage.setItem(TOKEN_KEY, token);
       } else {
         sessionStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_KEY);
       }
     } catch {
-      // Ignore sessionStorage errors in restricted environments
+      // Ignore storage errors in restricted environments
     }
     this.notifyAuthListeners(!!token);
   }
