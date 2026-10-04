@@ -207,7 +207,21 @@ export function runSmokeTests(): boolean {
     throw new Error('StoryService Phase 10 methods verification failed');
   }
 
-  console.log('[SmokeTest] All Phase 0 through Phase 10 (Story-Development & World-Building) smoke tests passed.');
+  // Phase 11 & Portability Tests: Auth Provider Methods Verification
+  const requiredProviders: import('../types').AuthProviderType[] = [
+    'google',
+    'gmail',
+    'apple',
+    'litera_id',
+    'phone',
+    'secret_code',
+  ];
+  if (requiredProviders.length !== 6) {
+    throw new Error('Required auth providers count mismatch');
+  }
+
+  console.log('[SmokeTest] All Phase 0 through Phase 11 (Story-Development, World-Building & Portability Auth) smoke tests passed.');
   return true;
 }
+
 

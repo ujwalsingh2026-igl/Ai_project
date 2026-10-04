@@ -12,6 +12,8 @@ import {
   EyeOff,
   Sidebar as SidebarIcon,
   MoreVertical,
+  LogIn,
+  Cloud,
 } from 'lucide-react';
 import { useApp } from '../../state';
 import { useAuth } from '../../auth';
@@ -19,6 +21,8 @@ import { MobileBranding } from '../brand/MobileBranding';
 import { Badge } from '../ui/Badge';
 import { Dropdown } from '../ui/Dropdown';
 import { IconButton } from '../ui/IconButton';
+import { AuthModal } from '../auth/AuthModal';
+import { AccountProfileModal } from '../auth/AccountProfileModal';
 
 export const Header: React.FC = () => {
   const {
@@ -38,7 +42,15 @@ export const Header: React.FC = () => {
     rightPanelOpen,
   } = useApp();
 
-  const { user } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    authModalOpen,
+    setAuthModalOpen,
+    profileModalOpen,
+    setProfileModalOpen,
+    openAuthModal,
+  } = useAuth();
 
   if (distractionFree) return null;
 
@@ -52,6 +64,8 @@ export const Header: React.FC = () => {
         return activeDocument ? activeDocument.title : 'Manuscript';
       case 'book':
         return 'Books & Novels';
+      case 'story':
+        return 'Story Bible & World-Building';
       case 'recent':
         return 'Recent Documents';
       case 'favorites':
@@ -134,9 +148,17 @@ export const Header: React.FC = () => {
         </button>
 
         {/* Save / Sync status badge */}
-        <Badge variant="neutral" className="hidden lg:inline-flex gap-1.5 py-1">
-          <ShieldCheck className="w-3.5 h-3.5 text-stone-500" />
-          <span>Local Safe</span>
+        <Badge
+          variant={isAuthenticated ? 'success' : 'neutral'}
+          className="hidden lg:inline-flex gap-1.5 py-1 cursor-pointer"
+          onClick={() => (isAuthenticated ? setProfileModalOpen(true) : openAuthModal('signin'))}
+        >
+          {isAuthenticated ? (
+            <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <ShieldCheck className="w-3.5 h-3.5 text-stone-500" />
+          )}
+          <span>{isAuthenticated ? 'Cloud Synced' : 'Local Vault'}</span>
         </Badge>
 
         {/* Theme quick toggle */}
@@ -189,6 +211,12 @@ export const Header: React.FC = () => {
           }
           items={[
             {
+              id: 'account',
+              label: isAuthenticated ? 'Account & Portability' : 'Sign In / Sign Up',
+              icon: <UserIcon className="w-3.5 h-3.5" />,
+              onClick: () => (isAuthenticated ? setProfileModalOpen(true) : openAuthModal('signin')),
+            },
+            {
               id: 'distraction-free',
               label: 'Distraction-Free Mode',
               icon: <EyeOff className="w-3.5 h-3.5" />,
@@ -203,16 +231,40 @@ export const Header: React.FC = () => {
           ]}
         />
 
-        {/* User indicator */}
+        {/* User Account / Auth Trigger */}
         <div className="flex items-center gap-2 pl-2 border-l border-stone-200 dark:border-stone-800">
-          <div className="w-7 h-7 rounded-full bg-stone-200 dark:bg-stone-700 flex items-center justify-center text-stone-700 dark:text-stone-300 text-xs font-medium">
-            <UserIcon className="w-3.5 h-3.5" />
-          </div>
-          <span className="hidden xl:inline text-xs font-medium text-stone-700 dark:text-stone-300">
-            {user?.displayName || 'Author'}
-          </span>
+          {isAuthenticated ? (
+            <button
+              onClick={() => setProfileModalOpen(true)}
+              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition"
+              title="View Portable Profile & Sync"
+            >
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-xs"
+                style={{ backgroundColor: user?.avatarColor || '#D97706' }}
+              >
+                {user?.displayName?.charAt(0).toUpperCase() || 'A'}
+              </div>
+              <span className="hidden xl:inline text-xs font-medium text-stone-800 dark:text-stone-200 max-w-[110px] truncate">
+                {user?.literaHandle || user?.displayName}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => openAuthModal('signin')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Auth & Profile Modals */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <AccountProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
     </header>
   );
 };
+
