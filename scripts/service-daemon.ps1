@@ -86,11 +86,12 @@ function Ensure-Tunnel {
             $tProc = Start-Process -FilePath $cloudflaredExe -ArgumentList $tArgs -RedirectStandardError $tunnelLog -WindowStyle Hidden -PassThru
             Start-Sleep -Seconds 5
             
-            # Read tunnel URL from log
+            # Read tunnel URL from log (extract the most recent URL match)
             if (Test-Path $tunnelLog) {
                 $content = Get-Content $tunnelLog -Raw
-                if ($content -match "(https://[a-zA-Z0-9-]+\.trycloudflare\.com)") {
-                    $url = $matches[1]
+                $allMatches = [regex]::Matches($content, 'https://[a-zA-Z0-9-]+\.trycloudflare\.com')
+                if ($allMatches.Count -gt 0) {
+                    $url = $allMatches[$allMatches.Count - 1].Value
                     Set-Content -Path $tunnelUrlFile -Value $url
                     Log-Daemon "Public Cloudflare Tunnel established: $url"
                 }
