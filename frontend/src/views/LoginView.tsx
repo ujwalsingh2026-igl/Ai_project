@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, User, AlertCircle, Terminal } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api/client';
 import { ApiError } from '../api/types';
 
 export const LoginView: React.FC = () => {
@@ -133,7 +134,7 @@ export const LoginView: React.FC = () => {
 
         {/* Safety & Environment Notice */}
         <div className="mt-6 pt-4 border-t border-cockpit-border/60 text-center font-mono text-[11px] text-cockpit-muted">
-          <span>Backend Target: <code className="text-cockpit-accent">http://127.0.0.1:8001</code></span>
+          <span>Backend Target: <code className="text-cockpit-accent">{api.getBaseUrl() || 'Auto (Local & Remote)'}</code></span>
           <p className="mt-1">Tokens kept in memory & sessionStorage • Never logged</p>
         </div>
       </div>

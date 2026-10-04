@@ -14,8 +14,8 @@ $backendPort = Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinu
 if ($backendPort) {
     Write-Host "[OK] Django Backend is already active on http://127.0.0.1:8001" -ForegroundColor Green
 } else {
-    Write-Host "[*] Starting Django Backend on port 8001..." -ForegroundColor Yellow
-    $backendCmd = 'cd "' + $backendDir + '"; .\.venv\Scripts\Activate.ps1; python manage.py runserver 8001'
+    Write-Host "[*] Starting Django Backend on port 8001 (0.0.0.0 for LAN/mobile access)..." -ForegroundColor Yellow
+    $backendCmd = 'cd "' + $backendDir + '"; .\.venv\Scripts\Activate.ps1; python manage.py runserver 0.0.0.0:8001'
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd -WindowStyle Normal
     Start-Sleep -Seconds 2
 }

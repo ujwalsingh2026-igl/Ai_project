@@ -57,8 +57,8 @@ function Ensure-Ollama {
 function Ensure-Backend {
     if (-not (Test-Port 8001)) {
         Log-Daemon "Backend API down on port 8001. Launching Django service..."
-        $script = "cd `"$backendDir`"; & `"$pythonExe`" manage.py runserver 8001"
-        Start-Process "powershell" -ArgumentList "-WindowStyle", "Hidden", "-Command", $script -WindowStyle Hidden
+        $script = "& `"$pythonExe`" manage.py runserver 0.0.0.0:8001"
+        Start-Process "powershell" -WorkingDirectory $backendDir -ArgumentList "-WindowStyle", "Hidden", "-Command", $script -WindowStyle Hidden
         Start-Sleep -Seconds 3
     }
 }
@@ -69,12 +69,9 @@ function Ensure-Frontend {
         $fnmNode = "C:\Users\dell\AppData\Roaming\fnm\node-versions\v24.21.0\installation"
         $pathPrefix = if (Test-Path $fnmNode) { "`$env:PATH = `"$fnmNode;`" + `$env:PATH; " } else { "" }
         $distPath = Join-Path $frontendDir "dist"
-        if (Test-Path $distPath) {
-            $script = "$pathPrefix cd `"$frontendDir`"; npm run preview -- --port 5173 --host 0.0.0.0"
-        } else {
-            $script = "$pathPrefix cd `"$frontendDir`"; npm run dev -- --host 0.0.0.0"
-        }
-        Start-Process "powershell" -ArgumentList "-WindowStyle", "Hidden", "-Command", $script -WindowStyle Hidden
+        $npmCmd = if (Test-Path $distPath) { "npm run preview -- --port 5173 --host 0.0.0.0" } else { "npm run dev -- --host 0.0.0.0" }
+        $script = "$pathPrefix $npmCmd"
+        Start-Process "powershell" -WorkingDirectory $frontendDir -ArgumentList "-WindowStyle", "Hidden", "-Command", $script -WindowStyle Hidden
         Start-Sleep -Seconds 3
     }
 }

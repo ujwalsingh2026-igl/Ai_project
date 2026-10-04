@@ -167,8 +167,8 @@ $backendPort = Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinu
 if ($backendPort) {
     Write-Success "Backend API Server is active on port 8001 (PID $($backendPort[0].OwningProcess))."
 } else {
-    Write-Step "Launching Backend API Server on http://127.0.0.1:8001..."
-    $bCmd = 'cd "' + $backendDir + '"; .\.venv\Scripts\Activate.ps1; python manage.py runserver 8001'
+    Write-Step "Launching Backend API Server on 0.0.0.0:8001 (LAN & mobile accessible)..."
+    $bCmd = 'cd "' + $backendDir + '"; .\.venv\Scripts\Activate.ps1; python manage.py runserver 0.0.0.0:8001'
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $bCmd -WindowStyle Minimized
     Start-Sleep -Seconds 3
     Write-Success "Backend API Server launched."

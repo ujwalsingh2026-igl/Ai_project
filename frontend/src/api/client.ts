@@ -39,7 +39,8 @@ import {
 } from './types';
 
 const TOKEN_KEY = 'aegis_session_token';
-const DEFAULT_BASE_URL = 'http://127.0.0.1:8001';
+const isTestEnv = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test';
+const DEFAULT_BASE_URL = (!isTestEnv && typeof window !== 'undefined') ? '' : 'http://127.0.0.1:8001';
 
 type AuthListener = (isAuthenticated: boolean) => void;
 type RateLimitListener = (isRateLimited: boolean, message?: string) => void;

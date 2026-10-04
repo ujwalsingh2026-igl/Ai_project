@@ -198,6 +198,65 @@ def cmd_chat(args):
             print(f"\n[!] Error contacting model: {e}")
 
 
+def get_local_ip():
+    """Detects the primary non-loopback local network IP (e.g. Wi-Fi)."""
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
+def cmd_mobile(args):
+    local_ip = get_local_ip()
+    local_url = f"http://{local_ip}:5173"
+    tunnel_file = BACKEND_DIR / "logs" / "tunnel_url.txt"
+    tunnel_url = None
+    if tunnel_file.exists():
+        content = tunnel_file.read_text(encoding="utf-8").strip()
+        if content.startswith("http"):
+            tunnel_url = content
+
+    print("\n" + "=" * 65)
+    print("      AEGIS COMMAND CENTER // MOBILE PHONE ACCESS")
+    print("=" * 65 + "\n")
+
+    print("[OPTION 1: LOCAL WI-FI ACCESS]")
+    print("  Use when your mobile phone is connected to the same Wi-Fi router.")
+    print(f"  Mobile URL: {local_url}")
+    print("\n  Scan QR Code with your Phone Camera:")
+    try:
+        req = urllib.request.Request(f"https://qrenco.de/{local_url}", headers={"User-Agent": "curl/7.68.0"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            print(resp.read().decode("utf-8"))
+    except Exception:
+        print(f"  (Point your phone browser to {local_url})")
+
+    if tunnel_url:
+        print("\n" + "-" * 65)
+        print("[OPTION 2: PUBLIC CLOUD ACCESS (ANYWHERE OVER 4G / 5G / CELLULAR)]")
+        print("  Use when your phone is outside your home or on cellular data.")
+        print(f"  Public HTTPS URL: {tunnel_url}")
+        print("\n  Scan Cloud QR Code:")
+        try:
+            req = urllib.request.Request(f"https://qrenco.de/{tunnel_url}", headers={"User-Agent": "curl/7.68.0"})
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                print(resp.read().decode("utf-8"))
+        except Exception:
+            print(f"  (Point your phone browser to {tunnel_url})")
+    else:
+        print("\n" + "-" * 65)
+        print("[OPTION 2: PUBLIC CLOUD TUNNEL]")
+        print("  To enable public mobile access over cellular data (outside Wi-Fi), run:")
+        print("  powershell .\\scripts\\setup-tunnel.ps1 -Action start")
+
+    print("=" * 65 + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Aegis Autonomous Command Center Unified CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -218,9 +277,8 @@ def main():
     tool_parser.add_argument("tool_name", help="Name of the tool to execute")
     tool_parser.add_argument("arguments", nargs="*", help="Arguments in key=value format")
 
-    # chat
-    chat_parser = subparsers.add_parser("chat", help="Interactive terminal chat with AI agent")
-    chat_parser.add_argument("--model", choices=["aegis-defense", "aegis-medical", "llama3.2"], default="aegis-defense")
+    # mobile
+    subparsers.add_parser("mobile", help="Get mobile access links and scan QR codes for phone access")
 
     args = parser.parse_args()
 
@@ -234,6 +292,8 @@ def main():
     elif args.command == "status":
         print_banner()
         cmd_status(args)
+    elif args.command == "mobile":
+        cmd_mobile(args)
     elif args.command == "tools":
         print_banner()
         cmd_tools(args)
