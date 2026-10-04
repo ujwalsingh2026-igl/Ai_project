@@ -39,6 +39,8 @@ htmlcov/
 # Static & Media
 staticfiles/
 *.log
+backend/logs/*
+!backend/logs/.gitkeep
 
 # Node & Frontend
 node_modules/
