@@ -15,6 +15,9 @@ import {
   Stethoscope,
   TrendingUp,
   ShoppingBag,
+  ShieldAlert,
+  Network,
+  Database,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -216,6 +219,46 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <ShoppingBag className="w-4 h-4 text-severity-low" />,
       action: () => {
         onSendSystemQuery('customer metrics');
+        onClose();
+      },
+    },
+    {
+      id: 'action-threat-lookup',
+      title: 'Security: Threat Signature Lookup (MITRE ATT&CK)',
+      category: 'Action',
+      icon: <ShieldAlert className="w-4 h-4 text-severity-high" />,
+      action: () => {
+        onSendSystemQuery('threat signature SYN Flood');
+        onClose();
+      },
+    },
+    {
+      id: 'action-network-anomaly',
+      title: 'Security: Network Traffic Anomaly Detector (NSL-KDD)',
+      category: 'Action',
+      icon: <Network className="w-4 h-4 text-cockpit-accent" />,
+      action: () => {
+        onSendSystemQuery('detect network anomaly telemetry flow: protocol=tcp, flag=S0, count=100');
+        onClose();
+      },
+    },
+    {
+      id: 'action-waf-analyzer',
+      title: 'Security: WAF Malicious Payload Inspector (FWAF)',
+      category: 'Action',
+      icon: <Shield className="w-4 h-4 text-severity-med" />,
+      action: () => {
+        onSendSystemQuery("waf inspect payload: ' UNION SELECT username, password FROM users--");
+        onClose();
+      },
+    },
+    {
+      id: 'action-security-catalog',
+      title: 'Security: Cybersecurity ML Benchmark Catalog',
+      category: 'Action',
+      icon: <Database className="w-4 h-4 text-severity-info" />,
+      action: () => {
+        onSendSystemQuery('cybersecurity benchmark dataset catalog');
         onClose();
       },
     },

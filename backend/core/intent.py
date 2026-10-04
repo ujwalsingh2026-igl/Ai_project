@@ -215,5 +215,26 @@ class AgentIntentRouter:
                 tool = self._registry.get("ecommerce_order_lookup")
                 return Intent("tool", "ecommerce_order_lookup", tool.infer_args(message))
 
+        # Defensive Cybersecurity & Benchmarks (NSL-KDD, FWAF, EMBER)
+        if any(k in lower for k in ["threat signature", "mitre attack", "threat profile", "cve lookup", "explain threat", "explain attack", "syn flood", "neptune attack"]):
+            if self._registry.get("cybersecurity_threat_lookup"):
+                tool = self._registry.get("cybersecurity_threat_lookup")
+                return Intent("tool", "cybersecurity_threat_lookup", tool.infer_args(message))
+
+        if any(k in lower for k in ["network anomaly", "detect intrusion", "network telemetry", "traffic anomaly", "nsl-kdd"]):
+            if self._registry.get("network_anomaly_detector"):
+                tool = self._registry.get("network_anomaly_detector")
+                return Intent("tool", "network_anomaly_detector", tool.infer_args(message))
+
+        if any(k in lower for k in ["waf payload", "inspect payload", "check sqli", "check xss", "analyze query", "malicious payload"]):
+            if self._registry.get("waf_payload_analyzer"):
+                tool = self._registry.get("waf_payload_analyzer")
+                return Intent("tool", "waf_payload_analyzer", tool.infer_args(message))
+
+        if any(k in lower for k in ["cybersecurity dataset", "security benchmark", "ml security dataset", "dataset catalog"]):
+            if self._registry.get("cybersecurity_dataset_catalog"):
+                tool = self._registry.get("cybersecurity_dataset_catalog")
+                return Intent("tool", "cybersecurity_dataset_catalog", tool.infer_args(message))
+
         return None
 

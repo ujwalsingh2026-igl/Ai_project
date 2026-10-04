@@ -98,6 +98,17 @@ def build_registry() -> ToolRegistry:
     registry.register(EcommerceSalesSummaryTool())
     registry.register(EcommerceCustomerMetricsTool())
     registry.register(EcommerceOrderLookupTool())
+    # Defensive Cybersecurity Decision Support & Benchmarks (NSL-KDD, FWAF, EMBER)
+    from core.builtin_tools.cybersecurity import (
+        CybersecurityDatasetCatalogTool,
+        CybersecurityThreatLookupTool,
+        NetworkAnomalyDetectorTool,
+        WafPayloadAnalyzerTool,
+    )
+    registry.register(CybersecurityThreatLookupTool())
+    registry.register(NetworkAnomalyDetectorTool())
+    registry.register(WafPayloadAnalyzerTool())
+    registry.register(CybersecurityDatasetCatalogTool())
     return registry
 
 

@@ -21,6 +21,14 @@ describe('End-to-End User Flow (Login -> Chat -> Approval Card -> Approve -> Exe
     vi.spyOn(api, 'getConversations').mockResolvedValue([]);
     vi.spyOn(api, 'getPendingApprovals').mockResolvedValue([]);
     vi.spyOn(api, 'getAuditLogs').mockResolvedValue([]);
+    vi.spyOn(api, 'getSecuritySummary').mockResolvedValue({
+      open_incidents: 0,
+      critical_incidents: 0,
+      high_incidents: 0,
+      total_incidents: 0,
+      quarantined_files: 0,
+      scanned_files: 0,
+    });
 
     const loginSpy = vi.spyOn(api, 'login').mockImplementation(async () => {
       api.setToken('test-alice-token-xyz');

@@ -13,6 +13,9 @@ backend/data/scans/*
 backend/data/medical/*.jsonl
 backend/data/medical/*.gz
 backend/data/analytics/*.csv
+backend/data/security/*.txt
+backend/data/security/*.jsonl
+backend/data/security/*.csv
 
 # Python
 __pycache__/
