@@ -183,4 +183,37 @@ class AgentIntentRouter:
             if self._registry.get("memory_recall"):
                 return Intent("tool", "memory_recall", {})
 
+        # Medical Clinical Decision Support (Opus 5.5)
+        if any(k in lower for k in ["disease info", "disease lookup", "what is the condition", "tell me about the disease"]):
+            if self._registry.get("medical_disease_lookup"):
+                tool = self._registry.get("medical_disease_lookup")
+                return Intent("tool", "medical_disease_lookup", tool.infer_args(message))
+
+        if any(k in lower for k in ["symptom", "triage", "differential diagnosis", "patient presents"]):
+            if self._registry.get("medical_symptom_triage"):
+                tool = self._registry.get("medical_symptom_triage")
+                return Intent("tool", "medical_symptom_triage", tool.infer_args(message))
+
+        if any(k in lower for k in ["drug interaction", "contraindication", "medication interaction"]):
+            if self._registry.get("medical_drug_interaction"):
+                tool = self._registry.get("medical_drug_interaction")
+                return Intent("tool", "medical_drug_interaction", tool.infer_args(message))
+
+        # E-Commerce & Business Analytics
+        if any(k in lower for k in ["sales summary", "sales analytics", "revenue report", "profit margin"]):
+            if self._registry.get("ecommerce_sales_summary"):
+                tool = self._registry.get("ecommerce_sales_summary")
+                return Intent("tool", "ecommerce_sales_summary", tool.infer_args(message))
+
+        if any(k in lower for k in ["customer analytics", "customer metrics", "clv", "customer lifetime value", "repeat customer"]):
+            if self._registry.get("ecommerce_customer_metrics"):
+                tool = self._registry.get("ecommerce_customer_metrics")
+                return Intent("tool", "ecommerce_customer_metrics", tool.infer_args(message))
+
+        if any(k in lower for k in ["order lookup", "order status", "track order"]) or "ord-" in lower:
+            if self._registry.get("ecommerce_order_lookup"):
+                tool = self._registry.get("ecommerce_order_lookup")
+                return Intent("tool", "ecommerce_order_lookup", tool.infer_args(message))
+
         return None
+

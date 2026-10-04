@@ -12,6 +12,9 @@ import {
   X,
   Wifi,
   Brain,
+  Stethoscope,
+  TrendingUp,
+  ShoppingBag,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -173,6 +176,46 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       icon: <Brain className="w-4 h-4 text-cockpit-accent" />,
       action: () => {
         onSendSystemQuery('what do you remember');
+        onClose();
+      },
+    },
+    {
+      id: 'action-medical-lookup',
+      title: 'Action: Clinical Disease Lookup (Opus 5.5)',
+      category: 'Action',
+      icon: <Stethoscope className="w-4 h-4 text-severity-info" />,
+      action: () => {
+        onSendSystemQuery('medical lookup Atrial Fibrillation');
+        onClose();
+      },
+    },
+    {
+      id: 'action-medical-triage',
+      title: 'Action: Symptom Triage & Red Flags (HH-RLHF)',
+      category: 'Action',
+      icon: <Stethoscope className="w-4 h-4 text-severity-high" />,
+      action: () => {
+        onSendSystemQuery('medical triage patient presents with palpitations and shortness of breath');
+        onClose();
+      },
+    },
+    {
+      id: 'action-ecommerce-sales',
+      title: 'Action: E-Commerce Sales & Revenue Summary',
+      category: 'Action',
+      icon: <TrendingUp className="w-4 h-4 text-cockpit-accent" />,
+      action: () => {
+        onSendSystemQuery('sales summary');
+        onClose();
+      },
+    },
+    {
+      id: 'action-ecommerce-customer',
+      title: 'Action: Customer Analytics & CLV Metrics',
+      category: 'Action',
+      icon: <ShoppingBag className="w-4 h-4 text-severity-low" />,
+      action: () => {
+        onSendSystemQuery('customer metrics');
         onClose();
       },
     },

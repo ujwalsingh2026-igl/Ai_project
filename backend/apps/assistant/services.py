@@ -80,6 +80,24 @@ def build_registry() -> ToolRegistry:
     memory_store = DjangoMemoryStore()
     registry.register(MemoryStoreTool(memory_store))
     registry.register(MemoryRecallTool(memory_store))
+    # Clinical Decision Support & Medical Intelligence (Opus 5.5 & Anthropic HH-RLHF)
+    from core.builtin_tools.medical import (
+        MedicalDiseaseLookupTool,
+        MedicalDrugInteractionTool,
+        MedicalSymptomTriageTool,
+    )
+    registry.register(MedicalDiseaseLookupTool())
+    registry.register(MedicalSymptomTriageTool())
+    registry.register(MedicalDrugInteractionTool())
+    # E-Commerce Sales & Customer Analytics (Kaggle Analytics)
+    from core.builtin_tools.analytics import (
+        EcommerceCustomerMetricsTool,
+        EcommerceOrderLookupTool,
+        EcommerceSalesSummaryTool,
+    )
+    registry.register(EcommerceSalesSummaryTool())
+    registry.register(EcommerceCustomerMetricsTool())
+    registry.register(EcommerceOrderLookupTool())
     return registry
 
 
