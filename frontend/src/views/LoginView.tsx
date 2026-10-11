@@ -1116,27 +1116,27 @@ export const LoginView: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                api.setBaseUrl('https://ribbon-raw-strap-rfc.trycloudflare.com');
+                api.setBaseUrl('https://aegis-backend-oxee.onrender.com');
                 window.location.reload();
               }}
-              className="py-1.5 px-2 rounded bg-cockpit-base border border-cockpit-border hover:border-cockpit-accent text-[10px] text-center truncate transition-colors"
+              className="py-1.5 px-2 rounded bg-cockpit-base border border-cockpit-border hover:border-cockpit-accent text-[10px] text-center truncate transition-colors text-cockpit-accent"
             >
-              Cloud Tunnel
+              Render Cloud
             </button>
             <button
               type="button"
               onClick={() => {
-                api.setBaseUrl('');
+                api.setBaseUrl('http://127.0.0.1:8001');
                 window.location.reload();
               }}
               className="py-1.5 px-2 rounded bg-cockpit-base border border-cockpit-border hover:border-cockpit-accent text-[10px] text-center truncate transition-colors"
             >
-              Same Origin
+              Local (8001)
             </button>
             <button
               type="button"
               onClick={() => setShowCustomUrl(!showCustomUrl)}
-              className="py-1.5 px-2 rounded bg-cockpit-base border border-cockpit-border hover:border-cockpit-accent text-[10px] text-center truncate transition-colors text-cockpit-accent"
+              className="py-1.5 px-2 rounded bg-cockpit-base border border-cockpit-border hover:border-cockpit-accent text-[10px] text-center truncate transition-colors"
             >
               Custom URL
             </button>
@@ -1146,7 +1146,7 @@ export const LoginView: React.FC = () => {
             <div className="mt-2.5 p-2 rounded bg-cockpit-base border border-cockpit-border space-y-2">
               <input
                 type="text"
-                placeholder="https://...trycloudflare.com or http://ip:8001"
+                placeholder="https://aegis-backend-oxee.onrender.com or http://ip:8001"
                 value={customUrlInput}
                 onChange={(e) => setCustomUrlInput(e.target.value)}
                 className="w-full px-2.5 py-1 rounded bg-cockpit-surface border border-cockpit-border text-xs font-mono text-cockpit-text focus:outline-none focus:border-cockpit-accent"
@@ -1178,7 +1178,7 @@ export const LoginView: React.FC = () => {
           </p>
           <div className="mt-2 text-center text-[10px] text-cockpit-muted">
             <span>
-              Backend Target: <code className="text-cockpit-accent">{api.getBaseUrl() || 'http://127.0.0.1:8001'}</code>
+              Backend Target: <code className="text-cockpit-accent">{api.getBaseUrl() || 'https://aegis-backend-oxee.onrender.com'}</code>
             </span>
           </div>
         </div>

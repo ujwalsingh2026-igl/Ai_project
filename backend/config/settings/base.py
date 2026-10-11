@@ -44,9 +44,20 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", True)
+CORS_ALLOWED_ORIGINS = env_list(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173,https://ujwalsingh2026-igl.github.io,https://localhost,capacitor://localhost",
+)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.github\.io$",
+    r"^https?:\/\/localhost(:\d+)?$",
+    r"^https?:\/\/127\.0\.0\.1(:\d+)?$",
+    r"^capacitor:\/\/localhost$",
+]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + ["x-request-id"]
+
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"

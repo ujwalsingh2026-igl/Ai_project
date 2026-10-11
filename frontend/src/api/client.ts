@@ -51,6 +51,8 @@ const SERVER_URL_KEY = 'aegis_server_url';
 const TOKEN_KEY = 'aegis_session_token';
 const isTestEnv = typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test';
 
+const DEFAULT_PRODUCTION_BACKEND_URL = 'https://aegis-backend-oxee.onrender.com';
+
 function getInitialBaseUrl(): string {
   if (isTestEnv) return 'http://127.0.0.1:8001';
   if (typeof window === 'undefined') return 'http://127.0.0.1:8001';
@@ -59,22 +61,20 @@ function getInitialBaseUrl(): string {
     const saved = localStorage.getItem(SERVER_URL_KEY);
     if (saved && saved.trim()) {
       const clean = saved.trim().replace(/\/+$/, '');
-      // If user had a stale/dead Cloudflare tunnel saved, purge it so it doesn't break connection
-      if (clean.includes('trycloudflare.com') && !clean.includes('ribbon-raw-strap-rfc.trycloudflare.com')) {
-        localStorage.removeItem(SERVER_URL_KEY);
-      } else if (isNative && (clean.includes('127.0.0.1') || clean.includes('localhost'))) {
-        // Physical mobile phones cannot reach the development PC on 127.0.0.1
+      // If user had a stale temporary Cloudflare tunnel saved or mobile localhost, clear it
+      if (clean.includes('trycloudflare.com') || (isNative && (clean.includes('127.0.0.1') || clean.includes('localhost')))) {
         localStorage.removeItem(SERVER_URL_KEY);
       } else {
         return clean;
       }
     }
   } catch {}
-  if (isNative) {
-    return 'https://ribbon-raw-strap-rfc.trycloudflare.com';
+  if (isNative || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1'))) {
+    return DEFAULT_PRODUCTION_BACKEND_URL;
   }
   return '';
 }
+
 
 const DEFAULT_BASE_URL = getInitialBaseUrl();
 
