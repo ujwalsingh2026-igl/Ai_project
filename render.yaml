@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: aegis-backend
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "pip install -r backend/requirements/production.txt && python backend/manage.py migrate"
+    startCommand: "gunicorn --chdir backend config.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: BEHIND_PROXY
+        value: "true"
+      - key: SECURE_SSL_REDIRECT
+        value: "true"
+      - key: AI_PROVIDER
+        value: echo
