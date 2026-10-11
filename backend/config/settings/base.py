@@ -100,10 +100,31 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "DEFAULT_THROTTLE_RATES": {"anon": "30/min", "user": "120/min", "chat": "30/min", "login": "10/min", "confirm": "30/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/min",
+        "user": "120/min",
+        "chat": "30/min",
+        "login": "10/min",
+        "confirm": "30/min",
+        "password_reset": "5/min",
+    },
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "EXCEPTION_HANDLER": "config.exceptions.api_exception_handler",
 }
+
+# Authentication & External Providers
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET", "")
+FRONTEND_URL = env("FRONTEND_URL", "http://localhost:5173")
+
+# Email Settings (console backend default for development/testing)
+EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(env("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "Aegis Command Center <noreply@defense.aegis>")
 
 # ---- AI provider: ONE central place. Change .env, not code. ----
 AI_CONFIG = ProviderConfig(

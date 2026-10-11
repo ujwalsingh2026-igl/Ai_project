@@ -40,6 +40,11 @@ import {
   RegisterRequest,
   RegisterResponse,
   UserProfile,
+  GoogleAuthResponse,
+  PasswordResetResponse,
+  PasswordResetConfirmRequest,
+  PasswordResetConfirmResponse,
+  EmailVerificationResponse,
 } from './types';
 
 const SERVER_URL_KEY = 'aegis_server_url';
@@ -106,12 +111,16 @@ class ApiClient {
     return this.baseUrl;
   }
 
-  public setToken(token: string | null) {
+  public setToken(token: string | null, rememberMe = true) {
     this.tokenInMemory = token;
     try {
       if (token) {
         sessionStorage.setItem(TOKEN_KEY, token);
-        localStorage.setItem(TOKEN_KEY, token);
+        if (rememberMe) {
+          localStorage.setItem(TOKEN_KEY, token);
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+        }
       } else {
         sessionStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(TOKEN_KEY);
@@ -130,8 +139,16 @@ class ApiClient {
     return !!this.tokenInMemory;
   }
 
-  public logout() {
-    this.setToken(null);
+  public async logout(): Promise<void> {
+    try {
+      if (this.tokenInMemory) {
+        await this.request('/api/auth/logout/', { method: 'POST' }).catch(() => {});
+      }
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      this.setToken(null);
+    }
   }
 
   public onAuthChange(listener: AuthListener): () => void {
@@ -225,24 +242,73 @@ class ApiClient {
     return this.request<{ status: string }>('/api/health/');
   }
 
-  public async login(username: string, password: string): Promise<TokenResponse> {
+  public async login(identifier: string, password: string, rememberMe = true): Promise<TokenResponse> {
     const res = await this.request<TokenResponse>('/api/auth/token/', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username: identifier, password }),
     });
-    this.setToken(res.token);
+    this.setToken(res.token, rememberMe);
     return res;
   }
 
-  public async register(payload: RegisterRequest): Promise<RegisterResponse> {
+  public async googleAuth(credential: string, rememberMe = true): Promise<GoogleAuthResponse> {
+    const res = await this.request<GoogleAuthResponse>('/api/auth/google/', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    });
+    if (res.token) {
+      this.setToken(res.token, rememberMe);
+    }
+    return res;
+  }
+
+  public async register(payload: RegisterRequest, rememberMe = true): Promise<RegisterResponse> {
     const res = await this.request<RegisterResponse>('/api/auth/register/', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
     if (res.token) {
-      this.setToken(res.token);
+      this.setToken(res.token, rememberMe);
     }
     return res;
+  }
+
+  public async requestPasswordReset(email: string): Promise<PasswordResetResponse> {
+    return this.request<PasswordResetResponse>('/api/auth/password-reset/', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  public async confirmPasswordReset(payload: PasswordResetConfirmRequest): Promise<PasswordResetConfirmResponse> {
+    const res = await this.request<PasswordResetConfirmResponse>('/api/auth/password-reset/confirm/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (res.token) {
+      this.setToken(res.token, true);
+    }
+    return res;
+  }
+
+  public async sendEmailVerification(): Promise<EmailVerificationResponse> {
+    return this.request<EmailVerificationResponse>('/api/auth/verify-email/send/', {
+      method: 'POST',
+    });
+  }
+
+  public async confirmEmailVerification(token: string): Promise<EmailVerificationResponse> {
+    return this.request<EmailVerificationResponse>('/api/auth/verify-email/confirm/', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  public async updatePreferences(preferences: Record<string, unknown>): Promise<{ preferences: Record<string, unknown> }> {
+    return this.request<{ preferences: Record<string, unknown> }>('/api/auth/preferences/', {
+      method: 'PATCH',
+      body: JSON.stringify({ preferences }),
+    });
   }
 
   public async getUserProfile(): Promise<UserProfile> {

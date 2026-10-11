@@ -4,3 +4,4 @@ djangorestframework>=3.16,<4    # REST API + token auth + throttling
 django-cors-headers>=4.7,<5     # CORS headers for React frontend
 psycopg[binary]>=3.2,<4         # PostgreSQL driver (used only when DB_NAME is set)
 psutil>=6.0                     # cross-platform CPU/RAM info for system_information tool
+google-auth>=2.20,<3            # Cryptographic verification of Google OAuth tokens

@@ -513,11 +513,14 @@ export interface UserProfile {
   id: number;
   username: string;
   email: string;
+  full_name?: string;
   is_superuser: boolean;
   role: 'SUPERUSER_ADMIN' | 'STANDARD_USER';
   auth_provider: AuthProviderType;
   provider_label: string;
   avatar_url?: string | null;
+  email_verified?: boolean;
+  preferences?: Record<string, unknown>;
   date_joined: string;
   last_login?: string | null;
 }
@@ -532,6 +535,7 @@ export interface PlatformUser {
   role: 'SUPERUSER_ADMIN' | 'STANDARD_USER';
   is_superuser: boolean;
   is_active: boolean;
+  email_verified?: boolean;
   date_joined: string | null;
   last_login: string | null;
 }
@@ -552,9 +556,10 @@ export interface UsersDirectoryResponse {
 export interface RegisterRequest {
   provider?: 'email' | 'google' | 'apple' | 'local';
   auth_provider?: 'email' | 'google' | 'apple' | 'local';
-  email?: string;
+  email: string;
   username?: string;
   password?: string;
+  confirm_password?: string;
   name?: string;
   provider_id?: string;
   avatar_url?: string;
@@ -564,6 +569,47 @@ export interface RegisterResponse {
   message: string;
   token: string;
   user: UserProfile;
+}
+
+export interface GoogleAuthRequest {
+  credential?: string;
+  id_token?: string;
+  token?: string;
+  remember_me?: boolean;
+}
+
+export interface GoogleAuthResponse {
+  message: string;
+  token: string;
+  user: UserProfile;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetResponse {
+  message: string;
+  debug_token?: string;
+}
+
+export interface PasswordResetConfirmRequest {
+  token: string;
+  new_password: string;
+  confirm_password?: string;
+}
+
+export interface PasswordResetConfirmResponse {
+  message: string;
+  token: string;
+  user: UserProfile;
+}
+
+export interface EmailVerificationResponse {
+  message: string;
+  email_verified?: boolean;
+  user?: UserProfile;
+  debug_token?: string;
 }
 
 
