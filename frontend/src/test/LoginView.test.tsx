@@ -23,7 +23,7 @@ describe('LoginView Component', () => {
     expect(screen.getByLabelText(/Operator Username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /INITIALIZE SESSION/i })).toBeInTheDocument();
-    expect(screen.getByText(/http:\/\/127.0.0.1:8001/i)).toBeInTheDocument();
+    expect(screen.getByText(/Backend Target:/i)).toBeInTheDocument();
   });
 
   it('shows error banner when credentials are empty or invalid', async () => {

@@ -55,24 +55,23 @@ const DEFAULT_PRODUCTION_BACKEND_URL = 'https://aegis-backend-oxee.onrender.com'
 
 function getInitialBaseUrl(): string {
   if (isTestEnv) return 'http://127.0.0.1:8001';
-  if (typeof window === 'undefined') return 'http://127.0.0.1:8001';
-  const isNative = typeof (window as any).Capacitor !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
+  if (typeof window === 'undefined') return DEFAULT_PRODUCTION_BACKEND_URL;
   try {
     const saved = localStorage.getItem(SERVER_URL_KEY);
     if (saved && saved.trim()) {
       const clean = saved.trim().replace(/\/+$/, '');
-      // If user had a stale temporary Cloudflare tunnel saved or mobile localhost, clear it
-      if (clean.includes('trycloudflare.com') || (isNative && (clean.includes('127.0.0.1') || clean.includes('localhost')))) {
-        localStorage.removeItem(SERVER_URL_KEY);
-      } else {
-        return clean;
+      // If user had an expired Cloudflare tunnel or dead local URL on web, purge and use Render
+      if (clean.includes('trycloudflare.com') || clean.includes('ribbon-raw-strap-rfc') || (clean === 'http://127.0.0.1:8001' && !window.location.hostname.includes('localhost'))) {
+        localStorage.setItem(SERVER_URL_KEY, DEFAULT_PRODUCTION_BACKEND_URL);
+        return DEFAULT_PRODUCTION_BACKEND_URL;
       }
+      return clean;
     }
   } catch {}
-  if (isNative || (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1'))) {
-    return DEFAULT_PRODUCTION_BACKEND_URL;
-  }
-  return '';
+  try {
+    localStorage.setItem(SERVER_URL_KEY, DEFAULT_PRODUCTION_BACKEND_URL);
+  } catch {}
+  return DEFAULT_PRODUCTION_BACKEND_URL;
 }
 
 
@@ -88,6 +87,15 @@ class ApiClient {
   private rateLimitListeners: Set<RateLimitListener> = new Set();
 
   constructor() {
+    // Auto-migrate any stale tunnels immediately
+    try {
+      const saved = localStorage.getItem(SERVER_URL_KEY);
+      if (!saved || saved.includes('trycloudflare.com') || saved.includes('ribbon-raw-strap-rfc')) {
+        localStorage.setItem(SERVER_URL_KEY, DEFAULT_PRODUCTION_BACKEND_URL);
+        this.baseUrl = DEFAULT_PRODUCTION_BACKEND_URL;
+      }
+    } catch {}
+
     // Initialize token from sessionStorage / localStorage on startup
     try {
       this.tokenInMemory = sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
@@ -95,6 +103,7 @@ class ApiClient {
       this.tokenInMemory = null;
     }
   }
+
 
   public setBaseUrl(url: string) {
     this.baseUrl = url.trim().replace(/\/+$/, '');

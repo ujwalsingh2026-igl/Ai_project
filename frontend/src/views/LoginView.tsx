@@ -111,6 +111,9 @@ export const LoginView: React.FC = () => {
   // Backend health polling
   useEffect(() => {
     let active = true;
+    if (api.getBaseUrl().includes('trycloudflare.com') || api.getBaseUrl().includes('ribbon-raw-strap-rfc')) {
+      api.setBaseUrl('https://aegis-backend-oxee.onrender.com');
+    }
     const probe = async () => {
       try {
         const res = await api.checkHealth();
@@ -128,6 +131,7 @@ export const LoginView: React.FC = () => {
       clearInterval(timer);
     };
   }, []);
+
 
   // Dynamically load Google Identity Services script
   useEffect(() => {
