@@ -445,17 +445,18 @@ export const LoginView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  api.setBaseUrl('https://ribbon-raw-strap-rfc.trycloudflare.com');
+                  api.setBaseUrl('https://aegis-backend-oxee.onrender.com');
                   window.location.reload();
                 }}
                 className="px-2.5 py-1 rounded bg-cockpit-accent text-black font-bold text-[10px] uppercase hover:bg-cockpit-accent/90"
               >
-                Connect to Cloud Tunnel
+                Connect to Render Cloud
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  api.setBaseUrl('');
+                  localStorage.removeItem('aegis_server_url');
+                  api.setBaseUrl('https://aegis-backend-oxee.onrender.com');
                   window.location.reload();
                 }}
                 className="px-2.5 py-1 rounded bg-cockpit-elevated border border-cockpit-border text-[10px] uppercase text-cockpit-muted hover:text-cockpit-text"
@@ -463,6 +464,7 @@ export const LoginView: React.FC = () => {
                 Reset Default
               </button>
             </div>
+
           </div>
         )}
 
