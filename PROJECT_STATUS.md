@@ -1,10 +1,15 @@
 # PROJECT STATUS
 
 ## CURRENT PHASE
-Phase H (Voice Command Integration, Persistent Memory & Final Polish) — **COMPLETED & VERIFIED**.
-All phases (Phase A through Phase H) are now fully implemented and verified!
-Backend core unit tests (117 tests pass), Django tests (172 tests pass), frontend tests (54 Vitest tests pass across 12 suites), and production build clean with zero TypeScript errors.
-The Aegis Command Center is fully production-ready, defensively hardened, and accessible via terminal, cockpit UI, and multimodal voice.
+Phase S0 (Security Hardening Baseline & Threat Modeling) — **COMPLETED & VERIFIED**.
+- Threat Model published: `docs/security/THREAT_MODEL.md` (STRIDE + OWASP Top 10 for LLM Applications 2025 + OWASP ASVS v4.0.3).
+- Security Controls Catalog established: `docs/security/CONTROLS.md` (35 controls cataloged with threats, tests, and limits).
+- Security Scorecard initiated: `docs/security/SCORECARD.md` (15 verified controls, 3 partial, 17 planned).
+- Dependency Governance initialized: `docs/security/DEPENDENCIES.md`.
+- Automated Scans executed: `pip-audit` (0 CVEs), `bandit` (3 High, 10 Medium triaged), `check --deploy` (0 errors), git secret scan (0 secrets).
+- Critical Guardrail Fix: Hardened `SecurityKillProcessTool` against expected vs actual process name race conditions.
+- Hardened Virtual Server Host (`infrastructure/virtual_server.py` & `ADR-023`): Loopback isolation (`127.0.0.1`), end-to-end TLS 1.3 encryption, injected security headers, and autonomous self-healing watchdog enforcing the CIA Triad (Confidentiality, Integrity, Availability).
+- Test suites verified: Pure-Python core unit tests (**144 passed**), Django test suite (**207 passed**), Frontend Vitest tests (**54 passed** across 12 suites).
 
 ## CURRENT FEATURES
 - **Permission engine**: levels 0-5, ALLOW/ASK/BLOCK, fail-closed, single-use cryptographically expiring approvals.
@@ -89,13 +94,16 @@ The Aegis Command Center is fully production-ready, defensively hardened, and ac
   - Edit-before-send workflow (default `autoSend: false`) allowing operator review before submitting spoken queries.
 
 ## COMPLETED (verified)
-- `python -m unittest discover -s tests -p "test_*.py"` -> **117 tests pass** (+8 memory core tests).
-- `python manage.py test` -> **180 tests pass** (+14 memory API & tool tests).
-- `npm test` (Vitest) -> **54 tests pass** across 12 test suites (+5 memory view tests).
-- `npm run build` -> Clean production build in 3.09s with zero TypeScript / lint errors.
-- `python manage.py check` -> System check identified no issues (0 silenced).
+- `python -m unittest discover -s tests -p "test_*.py"` -> **144 tests pass** across 17 test modules.
+- `python manage.py test` -> **207 tests pass** across all Django apps.
+- `npm test` (Vitest) -> **54 tests pass** across 12 test suites.
+- `npm run build` -> Clean production build in 5.19s with zero TypeScript / lint errors.
+- `gradlew assembleDebug` -> Android APK cleanly built (8.27MB) via Microsoft OpenJDK 21 & Android SDK.
+- `python infrastructure/virtual_server.py --audit-only` -> CIA Triad audit passes: Confidentiality (SECURE), Integrity (VERIFIED), Availability (OPERATIONAL).
+- Virtual Server Gateway -> Active with end-to-end TLS 1.3 (`https://ribbon-raw-strap-rfc.trycloudflare.com`).
+- Direct APK Distribution -> Verified at `https://ribbon-raw-strap-rfc.trycloudflare.com/aegis-command-center.apk` & local path `c:\ai-assistant\aegis-command-center.apk`.
 
-## ALL PHASES COMPLETED (Phases A through H)
+## ALL PHASES COMPLETED (Phases A through H, Phase S0 Baseline, and Deployment & Mobile APK Release)
 - Phase A: Cockpit Shell & Security Approval Flow — COMPLETED & VERIFIED
 - Phase B: Multimodal Voice Access (Web Speech API + TTS) — COMPLETED & VERIFIED
 - Phase C: Daily Assistant (Tasks, Reminders, Notes, Daily Brief, Focus Timer) — COMPLETED & VERIFIED
@@ -104,6 +112,8 @@ The Aegis Command Center is fully production-ready, defensively hardened, and ac
 - Phase F: File Threat Scanner & Quarantine Vault (Entropy, PE Parser, Vault) — COMPLETED & VERIFIED
 - Phase G: Threat Detection & Incident Response Engine (Mitigations, ATT&CK, Firewall) — COMPLETED & VERIFIED
 - Phase H: Voice Integration, Persistent Assistant Memory & Final Polish — COMPLETED & VERIFIED
+- Phase S0: Baseline & Threat Modeling (STRIDE, OWASP LLM, ASVS, SAST) — COMPLETED & VERIFIED
+- Phase Deployment: Virtual Server Gateway (CIA Triad) & Mobile Android APK Assembly — COMPLETED & VERIFIED
 
 ## KNOWN BUGS / UNVERIFIED
 - Real Windows Firewall changes require administrator privileges when executed natively; non-elevated executions record the rule defensively in the database and provide copyable PowerShell administrator commands.

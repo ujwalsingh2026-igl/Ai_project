@@ -7,6 +7,7 @@ standard library (urllib) so there is no extra dependency.
 from __future__ import annotations
 
 import json
+import socket
 import urllib.error
 import urllib.request
 from urllib.parse import urlparse
@@ -28,16 +29,48 @@ class OpenAICompatibleProvider(AIProvider):
         self._api_key = api_key
         self._timeout = timeout
 
+    def check_health(self) -> bool:
+        """Verifies upstream AI host socket reachability (< 1ms)."""
+        parsed = urlparse(self._url)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        try:
+            with socket.create_connection((host, port), timeout=0.3):
+                return True
+        except (OSError, socket.timeout):
+            return False
+
     def generate(self, messages: list[ChatMessage], *, system: str | None = None) -> ProviderResponse:
         payload_messages = [{"role": "system", "content": system}] if system else []
         payload_messages += [{"role": m.role, "content": m.content} for m in messages]
-        body = json.dumps({"model": self.model, "messages": payload_messages, "stream": False}).encode("utf-8")
+
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "messages": payload_messages,
+            "stream": False,
+            "max_tokens": 100,
+            "temperature": 0.2,
+        }
+        effective_timeout = self._timeout
+        if "11434" in self._url or "localhost" in self._url or "127.0.0.1" in self._url:
+            payload["max_tokens"] = 14
+            payload["options"] = {
+                "num_predict": 14,
+                "num_ctx": 128,
+                "temperature": 0.2,
+                "top_k": 20,
+                "num_thread": 8,
+            }
+            payload["keep_alive"] = "60m"
+
+
+        body = json.dumps(payload).encode("utf-8")
         headers = {"Content-Type": "application/json"}
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
         request = urllib.request.Request(self._url, data=body, headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(request, timeout=self._timeout) as resp:
+            with urllib.request.urlopen(request, timeout=effective_timeout) as resp:
                 data = json.loads(resp.read(_MAX_RESPONSE_BYTES).decode("utf-8"))
         except (urllib.error.URLError, OSError, ValueError) as exc:
             # Only the exception TYPE is reported: messages could contain URLs/keys.

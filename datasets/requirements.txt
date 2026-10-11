@@ -1,0 +1,3 @@
+# Only needed for the optional scripts. The generator and the router evaluation need nothing extra.
+scikit-learn>=1.4        # train_baseline.py
+datasets>=2.19           # download_public.py (optional, needs internet)

@@ -66,7 +66,7 @@ if (Test-Path $builtApk) {
     $size = (Get-Item $outApkRoot).Length / 1MB
     Write-Host ""
     Write-Host "[OK] Android APK Compiled Successfully!" -ForegroundColor Green
-    Write-Host "     Output: $outApkRoot ({0:N2} MB)" -f $size -ForegroundColor White
+    Write-Host ("     Output: {0} ({1:N2} MB)" -f $outApkRoot, $size) -ForegroundColor White
     Write-Host "     Direct Phone Download (Wi-Fi): http://10.227.244.161:5173/aegis-command-center.apk" -ForegroundColor Cyan
 } else {
     Write-Error "APK file was not generated at expected location: $builtApk"

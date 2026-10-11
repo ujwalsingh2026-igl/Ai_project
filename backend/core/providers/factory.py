@@ -9,7 +9,7 @@ from .gemini import GeminiProvider
 from .openai_compatible import OpenAICompatibleProvider
 
 OLLAMA_DEFAULT_URL = "http://localhost:11434/v1"
-DEFAULT_LOCAL_MODEL = "llama3.2:latest"
+DEFAULT_LOCAL_MODEL = "llama3.2:1b"
 
 
 @dataclass(frozen=True)

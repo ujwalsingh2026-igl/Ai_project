@@ -17,6 +17,7 @@ const VIEW_TITLES: Record<ActiveView, string> = {
   network: 'NETWORK & DNS',
   audit: 'ACTIVITY & AUDIT',
   memory: 'ASSISTANT MEMORY',
+  users: 'USER DIRECTORY',
   settings: 'SETTINGS',
 };
 

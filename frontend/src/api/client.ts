@@ -36,6 +36,10 @@ import {
   FirewallRuleItem,
   SecuritySummary,
   AssistantMemoryItem,
+  UsersDirectoryResponse,
+  RegisterRequest,
+  RegisterResponse,
+  UserProfile,
 } from './types';
 
 const SERVER_URL_KEY = 'aegis_server_url';
@@ -45,13 +49,24 @@ const isTestEnv = typeof process !== 'undefined' && process.env && process.env.N
 function getInitialBaseUrl(): string {
   if (isTestEnv) return 'http://127.0.0.1:8001';
   if (typeof window === 'undefined') return 'http://127.0.0.1:8001';
+  const isNative = typeof (window as any).Capacitor !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
   try {
     const saved = localStorage.getItem(SERVER_URL_KEY);
-    if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
+    if (saved && saved.trim()) {
+      const clean = saved.trim().replace(/\/+$/, '');
+      // If user had a stale/dead Cloudflare tunnel saved, purge it so it doesn't break connection
+      if (clean.includes('trycloudflare.com') && !clean.includes('ribbon-raw-strap-rfc.trycloudflare.com')) {
+        localStorage.removeItem(SERVER_URL_KEY);
+      } else if (isNative && (clean.includes('127.0.0.1') || clean.includes('localhost'))) {
+        // Physical mobile phones cannot reach the development PC on 127.0.0.1
+        localStorage.removeItem(SERVER_URL_KEY);
+      } else {
+        return clean;
+      }
+    }
   } catch {}
-  const isNative = typeof (window as any).Capacitor !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
   if (isNative) {
-    return 'https://authorities-seminars-royalty-forum.trycloudflare.com';
+    return 'https://ribbon-raw-strap-rfc.trycloudflare.com';
   }
   return '';
 }
@@ -217,6 +232,25 @@ class ApiClient {
     });
     this.setToken(res.token);
     return res;
+  }
+
+  public async register(payload: RegisterRequest): Promise<RegisterResponse> {
+    const res = await this.request<RegisterResponse>('/api/auth/register/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (res.token) {
+      this.setToken(res.token);
+    }
+    return res;
+  }
+
+  public async getUserProfile(): Promise<UserProfile> {
+    return this.request<UserProfile>('/api/auth/profile/');
+  }
+
+  public async getUsersDirectory(): Promise<UsersDirectoryResponse> {
+    return this.request<UsersDirectoryResponse>('/api/admin/users/');
   }
 
   public async getStatus(): Promise<AssistantStatus> {

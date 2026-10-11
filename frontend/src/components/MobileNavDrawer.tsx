@@ -12,6 +12,7 @@ import {
   SunMoon,
   X,
   Lock,
+  Users,
 } from 'lucide-react';
 import { ActiveView } from './Sidebar';
 import { useAuth } from '../context/AuthContext';
@@ -32,7 +33,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onSelectView,
   pendingApprovalsCount,
 }) => {
-  const { logout } = useAuth();
+  const { logout, isSuperuser } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   if (!isOpen) return null;
@@ -70,6 +71,17 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
       label: 'Assistant Memory',
       icon: <Brain className="w-5 h-5" />,
     },
+    ...(isSuperuser
+      ? [
+          {
+            id: 'users' as ActiveView,
+            label: 'User Directory',
+            icon: <Users className="w-5 h-5" />,
+            badge: 'ADMIN',
+            badgeColor: 'text-cockpit-accent bg-cockpit-accent/20 border-cockpit-accent',
+          },
+        ]
+      : []),
     {
       id: 'settings' as ActiveView,
       label: 'Settings',

@@ -10,6 +10,7 @@ import {
   LogOut,
   ShieldCheck,
   SunMoon,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -21,6 +22,7 @@ export type ActiveView =
   | 'network'
   | 'audit'
   | 'memory'
+  | 'users'
   | 'settings';
 
 interface SidebarProps {
@@ -34,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectView,
   pendingApprovalsCount,
 }) => {
-  const { logout } = useAuth();
+  const { logout, isSuperuser } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const navItems = [
@@ -70,6 +72,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Memory',
       icon: <Brain className="w-4 h-4" />,
     },
+    ...(isSuperuser
+      ? [
+          {
+            id: 'users' as ActiveView,
+            label: 'User Directory',
+            icon: <Users className="w-4 h-4" />,
+            badge: 'SUPERUSER',
+            badgeColor: 'text-cockpit-accent bg-cockpit-accent/20 border-cockpit-accent',
+          },
+        ]
+      : []),
     {
       id: 'settings' as ActiveView,
       label: 'Settings',

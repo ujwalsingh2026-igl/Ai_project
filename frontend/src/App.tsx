@@ -18,6 +18,7 @@ import { DailyView } from './views/DailyView';
 import { SecurityView } from './views/SecurityView';
 import { NetworkView } from './views/NetworkView';
 import { MemoryView } from './views/MemoryView';
+import { UsersDirectoryView } from './views/UsersDirectoryView';
 import { MobileHeader } from './components/MobileHeader';
 import { MobileNavBar } from './components/MobileNavBar';
 import { MobileNavDrawer } from './components/MobileNavDrawer';
@@ -197,6 +198,8 @@ const CockpitRoot: React.FC = () => {
           {activeView === 'network' && <NetworkView />}
 
           {activeView === 'memory' && <MemoryView />}
+
+          {activeView === 'users' && <UsersDirectoryView />}
         </main>
 
         {/* Right Tactical Drawer */}

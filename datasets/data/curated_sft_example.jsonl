@@ -1,0 +1,3 @@
+{"messages": [{"role": "user", "content": "How do I show hidden file extensions in Windows?"}, {"role": "assistant", "content": "Open File Explorer, View, then tick File name extensions."}], "meta": {"id": "log-001", "curated": true}}
+{"messages": [{"role": "user", "content": "Route this: what python version should I learn first"}, {"role": "assistant", "content": "{\"action\":\"chat\"}"}], "meta": {"id": "log-006", "curated": true}}
+{"messages": [{"role": "user", "content": "I am at the library right now, quiz me on C pointers"}, {"role": "assistant", "content": "Question 1: what does * mean in a declaration?"}], "meta": {"id": "log-007", "curated": true}}

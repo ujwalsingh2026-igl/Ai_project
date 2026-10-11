@@ -10,6 +10,7 @@ import datetime
 import re
 from typing import Any, Protocol
 
+from ..memory_filter import MemoryVerdict, check_memory_candidate
 from ..permissions import PermissionContext, RiskLevel
 from ..tools import Tool, ToolSpec
 
@@ -178,6 +179,12 @@ class MemoryStoreTool(Tool):
         key = args["key"].strip()
         content = args["content"].strip()
         category = args.get("category", "preference")
+
+        # Phase 3 memory filter safety gate: refuse secrets, tokens, IDs, card numbers
+        decision = check_memory_candidate(f"{key} {content}")
+        if decision.verdict == MemoryVerdict.REFUSE:
+            raise ValueError(f"Memory Refusal: {decision.reason} ({decision.category})")
+
         memory = self._store.add_memory(
             user_id=user_id,
             key=key,

@@ -911,8 +911,12 @@ class SecurityKillProcessTool(Tool):
             pass
 
         # 3. HARD SAFETY BOUNDARY: Protected Process Name Check
-        if actual_name.lower() in PROTECTED_PROCESS_NAMES:
-            raise ValueError(f"Protected Process Violation: '{actual_name}' is a critical OS component and cannot be terminated.")
+        # Check both expected_name and actual runtime process name to prevent race conditions or spoofing
+        target_names = {n.lower() for n in (expected_name, actual_name) if n}
+        matched_protected = target_names.intersection(PROTECTED_PROCESS_NAMES)
+        if matched_protected:
+            blocked_name = next(iter(matched_protected))
+            raise ValueError(f"Protected Process Violation: '{blocked_name}' is a critical OS component and cannot be terminated.")
 
         # 4. Attempt process termination
         terminated = False

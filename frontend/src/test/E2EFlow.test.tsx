@@ -30,6 +30,17 @@ describe('End-to-End User Flow (Login -> Chat -> Approval Card -> Approve -> Exe
       scanned_files: 0,
     });
 
+    vi.spyOn(api, 'getUserProfile').mockResolvedValue({
+      id: 1,
+      username: 'alice',
+      email: 'alice@example.com',
+      is_superuser: false,
+      role: 'STANDARD_USER',
+      auth_provider: 'email',
+      provider_label: 'Email Registration',
+      date_joined: new Date().toISOString(),
+    });
+
     const loginSpy = vi.spyOn(api, 'login').mockImplementation(async () => {
       api.setToken('test-alice-token-xyz');
       return { token: 'test-alice-token-xyz' };

@@ -1,0 +1,9 @@
+{"scenario": "approve once", "tool_risk_level": 3, "steps": ["approve:1"], "expected_statuses": ["executed"], "expected_tool_runs": 1, "source": "generated-by-real-ApprovalService"}
+{"scenario": "deny", "tool_risk_level": 3, "steps": ["deny:1"], "expected_statuses": ["denied"], "expected_tool_runs": 0, "source": "generated-by-real-ApprovalService"}
+{"scenario": "approve twice", "tool_risk_level": 3, "steps": ["approve:1", "approve:1"], "expected_statuses": ["executed", "not_pending"], "expected_tool_runs": 1, "source": "generated-by-real-ApprovalService"}
+{"scenario": "deny then approve", "tool_risk_level": 3, "steps": ["deny:1", "approve:1"], "expected_statuses": ["denied", "not_pending"], "expected_tool_runs": 0, "source": "generated-by-real-ApprovalService"}
+{"scenario": "approve by another user", "tool_risk_level": 3, "steps": ["approve:2"], "expected_statuses": ["not_found"], "expected_tool_runs": 0, "source": "generated-by-real-ApprovalService"}
+{"scenario": "approve after expiry", "tool_risk_level": 3, "steps": ["wait:301", "approve:1"], "expected_statuses": ["waited", "expired"], "expected_tool_runs": 0, "source": "generated-by-real-ApprovalService"}
+{"scenario": "level 5 approved by owner", "tool_risk_level": 5, "steps": ["approve:1"], "expected_statuses": ["blocked"], "expected_tool_runs": 0, "source": "generated-by-real-ApprovalService"}
+{"scenario": "permission revoked before approval", "tool_risk_level": 3, "steps": ["approve:1"], "expected_statuses": ["blocked"], "expected_tool_runs": 0, "source": "generated-by-real-ApprovalService"}
+{"scenario": "attacker tries first, owner approves", "tool_risk_level": 3, "steps": ["approve:2", "approve:1"], "expected_statuses": ["not_found", "executed"], "expected_tool_runs": 1, "source": "generated-by-real-ApprovalService"}

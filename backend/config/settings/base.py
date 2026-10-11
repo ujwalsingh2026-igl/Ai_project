@@ -119,7 +119,7 @@ AI_CONFIG = ProviderConfig(
 PERMISSION_OVERRIDES = parse_policy_overrides(env("PERMISSION_OVERRIDES", ""))
 APPROVAL_TTL_SECONDS = int(env("APPROVAL_TTL_SECONDS", "300"))
 
-CHAT_HISTORY_LIMIT = 20        # last N messages sent to the AI
+CHAT_HISTORY_LIMIT = int(env("CHAT_HISTORY_LIMIT", "6"))        # last N messages sent to the AI
 CHAT_MESSAGE_MAX_LENGTH = 4000
 
 LOGGING = {

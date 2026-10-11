@@ -51,25 +51,58 @@ class AgentIntentRouter:
         self._provider = provider
         self._rule_router = RuleBasedIntentRouter(registry)
 
+    def _is_conversational(self, message: str) -> bool:
+        """Fast check for standard conversational greetings and small talk (< 0.1ms)."""
+        lower = message.strip().lower()
+        if not lower:
+            return True
+        greetings = {
+            "hi", "hello", "hey", "hola", "sup", "yo", "good morning", "good evening",
+            "good afternoon", "howdy", "ping", "help", "who are you", "what can you do",
+            "thanks", "thank you", "thx", "bye", "goodbye", "see ya", "status"
+        }
+        return lower in greetings
+
+    def _has_action_or_tool_intent(self, message: str) -> bool:
+        """Determines if the message contains potential action/tool triggers."""
+        lower = message.strip().lower()
+        if not lower or self._is_conversational(lower):
+            return False
+        if lower.startswith(("what is a ", "what is an ", "what is ", "what are ", "explain ", "tell me about ", "how does ", "why is ")):
+            return False
+        tool_keywords = (
+            "scan", "port", "socket", "check", "inspect", "system", "os", "host",
+            "hardware", "cpu", "ram", "task", "brief", "planner", "network", "device",
+            "arp", "dns", "file", "quarantine", "threat", "kill", "process", "block",
+            "firewall", "memory", "remember", "recall", "disease", "symptom", "triage",
+            "drug", "interaction", "order", "sales", "revenue", "customer", "waf",
+            "payload", "cve", "benchmark", "dataset", "server"
+        )
+        return any(k in lower for k in tool_keywords)
+
     def route(self, message: str) -> Intent:
-        # 1. Fast direct trigger matching for instant response on standard commands
+        # 1. Fast direct trigger matching for instant response on standard commands (< 0.1ms)
         fast_intent = self._rule_router.route(message)
         if fast_intent.kind == "tool":
             return fast_intent
 
-        # 2. LLM-based agent reasoning if an active model provider is configured
-        if self._provider and self._provider.name != "echo":
+        # 2. High-precision semantic keyword heuristics (< 0.2ms)
+        heuristic_intent = self._heuristic_match(message)
+        if heuristic_intent is not None:
+            return heuristic_intent
+
+        # 3. Direct conversational dispatch for greetings and common pings (< 0.1ms)
+        if self._is_conversational(message):
+            return Intent("chat")
+
+        # 4. LLM routing if action/tool intent is suspected and provider is present
+        if self._has_action_or_tool_intent(message) and self._provider is not None:
             try:
                 llm_intent = self._route_with_llm(message)
                 if llm_intent is not None:
                     return llm_intent
             except Exception as exc:
-                logger.warning(f"LLM tool routing failed, falling back to heuristics: {exc}")
-
-        # 3. Semantic keyword heuristics fallback
-        heuristic_intent = self._heuristic_match(message)
-        if heuristic_intent is not None:
-            return heuristic_intent
+                logger.warning("llm_intent_routing_failed", extra={"error": str(exc)})
 
         return Intent("chat")
 
@@ -80,11 +113,10 @@ class AgentIntentRouter:
         tools_desc = []
         for t in self._registry.all():
             spec = t.spec
-            tools_desc.append({
-                "name": spec.name,
-                "description": spec.description,
-                "input_schema": spec.input_schema,
-            })
+            item = {"name": spec.name, "description": spec.description}
+            if spec.input_schema and "properties" in spec.input_schema:
+                item["params"] = list(spec.input_schema["properties"].keys())
+            tools_desc.append(item)
 
         system_instruction = (
             "You are the intent analyzer and tool selection engine for Aegis AI Command Center.\n"
@@ -142,6 +174,14 @@ class AgentIntentRouter:
     def _heuristic_match(self, message: str) -> Intent | None:
         """High-precision keyword matching for natural requests."""
         lower = message.lower()
+
+        # System Information
+        if any(k in lower for k in ["system info", "os info", "what system", "system version", "host info", "hardware info", "system cpu", "cpu and memory", "specs", "hardware"]):
+            if self._registry.get("system_information"):
+                return Intent("tool", "system_information", {})
+        if any(k in lower for k in ["cpu", "ram", "memory", "disk"]) and any(w in lower for w in ["show", "check", "get", "inspect", "my", "this"]):
+            if self._registry.get("system_information"):
+                return Intent("tool", "system_information", {})
 
         # Security & Ports
         if any(k in lower for k in ["listening port", "open port", "what ports", "active sockets", "check ports"]):

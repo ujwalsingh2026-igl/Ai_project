@@ -507,3 +507,63 @@ export interface AssistantMemoryItem {
   updated_at: string;
 }
 
+export type AuthProviderType = 'local' | 'email' | 'google' | 'apple';
+
+export interface UserProfile {
+  id: number;
+  username: string;
+  email: string;
+  is_superuser: boolean;
+  role: 'SUPERUSER_ADMIN' | 'STANDARD_USER';
+  auth_provider: AuthProviderType;
+  provider_label: string;
+  avatar_url?: string | null;
+  date_joined: string;
+  last_login?: string | null;
+}
+
+export interface PlatformUser {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  auth_provider: AuthProviderType;
+  provider_display: string;
+  role: 'SUPERUSER_ADMIN' | 'STANDARD_USER';
+  is_superuser: boolean;
+  is_active: boolean;
+  date_joined: string | null;
+  last_login: string | null;
+}
+
+export interface UsersDirectoryResponse {
+  total_users: number;
+  superusers_count: number;
+  standard_users_count: number;
+  providers_breakdown: {
+    local: number;
+    email: number;
+    google: number;
+    apple: number;
+  };
+  users: PlatformUser[];
+}
+
+export interface RegisterRequest {
+  provider?: 'email' | 'google' | 'apple' | 'local';
+  auth_provider?: 'email' | 'google' | 'apple' | 'local';
+  email?: string;
+  username?: string;
+  password?: string;
+  name?: string;
+  provider_id?: string;
+  avatar_url?: string;
+}
+
+export interface RegisterResponse {
+  message: string;
+  token: string;
+  user: UserProfile;
+}
+
+
