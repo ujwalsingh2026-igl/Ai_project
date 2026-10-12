@@ -67,9 +67,18 @@ if (Test-Path $builtApk) {
     Write-Host ""
     Write-Host "[OK] Android APK Compiled Successfully!" -ForegroundColor Green
     Write-Host ("     Output: {0} ({1:N2} MB)" -f $outApkRoot, $size) -ForegroundColor White
-    Write-Host "     Direct Phone Download (Wi-Fi): http://10.227.244.161:5173/aegis-command-center.apk" -ForegroundColor Cyan
 } else {
     Write-Error "APK file was not generated at expected location: $builtApk"
 }
+
+$builtAab = Join-Path $androidDir "app\build\outputs\bundle\debug\app-debug.aab"
+$outAabRoot = Join-Path $projectRoot "aegis-command-center.aab"
+if (Test-Path $builtAab) {
+    Copy-Item $builtAab -Destination $outAabRoot -Force
+    $aabSize = (Get-Item $outAabRoot).Length / 1MB
+    Write-Host "[OK] Google Play Store AAB Bundle Ready!" -ForegroundColor Green
+    Write-Host ("     Output: {0} ({1:N2} MB)" -f $outAabRoot, $aabSize) -ForegroundColor White
+}
+
 
 Set-Location $projectRoot

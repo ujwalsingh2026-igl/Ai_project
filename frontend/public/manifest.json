@@ -4,12 +4,25 @@
   "description": "Private, zero-trust autonomous AI command center with defensive security orchestration and clinical intelligence.",
   "icons": [
     {
-      "src": "/shield.svg",
+      "src": "./icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./shield.svg",
       "type": "image/svg+xml",
       "sizes": "192x192 512x512 any",
       "purpose": "any maskable"
     }
   ],
+
   "start_url": "/",
   "background_color": "#0a0c10",
   "theme_color": "#00f0ff",

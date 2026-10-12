@@ -16,6 +16,7 @@ backend/data/analytics/*.csv
 backend/data/security/*.txt
 backend/data/security/*.jsonl
 backend/data/security/*.csv
+data/
 
 # Python
 __pycache__/
